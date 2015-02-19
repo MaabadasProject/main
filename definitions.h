@@ -7,11 +7,16 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 
+#define ASSEMBLY "as"
+#define READ "r" /* for fopen */
+#define WRITE "w" /* for fopen */
 #define A 0 /* absolute */
 #define E 1 /* external */
 #define R 2 /* relocatable */
 
+#ifndef opcodes
 char *opcodes[16] =
     {"mov"
     ,"cmp"
@@ -29,6 +34,7 @@ char *opcodes[16] =
     ,"jsr"
     ,"rts"
     ,"stop"};
+#endif
 
 typedef struct {
     int group :2; /* the amount of operands for this instruction */
