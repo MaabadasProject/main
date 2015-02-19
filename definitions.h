@@ -1,8 +1,8 @@
 //
-//  definitions.c
-//  
+//  definitions.h
 //
-//  Created by Guy on 2/18/15.
+//
+//  Created by Guy on 2/19/15.
 //
 //
 
@@ -13,7 +13,7 @@
 #define R 2 /* relocatable */
 
 char *opcodes[16] =
-    {"mov"
+{"mov"
     ,"cmp"
     ,"add"
     ,"sub"
