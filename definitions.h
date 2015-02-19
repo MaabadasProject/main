@@ -13,7 +13,7 @@
 #define R 2 /* relocatable */
 
 char *opcodes[16] =
-{"mov"
+    {"mov"
     ,"cmp"
     ,"add"
     ,"sub"
