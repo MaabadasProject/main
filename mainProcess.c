@@ -6,25 +6,27 @@
 //
 //
 
-#include "definitions.h"
+#include "mainProcess.h"
 
 int main(int argc, char *argv[])
 {
     int i;
     FILE *currAsFile, *currObFile, *currExtFile, *currEntFile;
-    char *fileName;
+    char *fileName = NULL;
     
     for (i = 1; i < argc; i++)
     {
-        if (assemblyFile(argv[i],fileName) && (!(currAsFile = fopen(argv[i],READ))))
+        if ((currAsFile = fopen(argv[i],READ)) && (assemblyFile(argv[i],&fileName)))
         {
-            //TODO: write here process for assembly files
+            //  TODO: write here process for assembly files
+            free(fileName);
+            fclose(currAsFile);
         }
     }
     return 0;
 }
 
-int assemblyFile(char *file, char *fileName)
+int assemblyFile(char *file, char **fileName)
 {
     int length = 1;
     char *curr;
@@ -35,10 +37,11 @@ int assemblyFile(char *file, char *fileName)
         length++;
         curr++;
     }
-    if ((*curr)=='.')
+    if (!(strcmp(curr,ASSEMBLY)))
     {
-        strncpy(fileName,file,length);
-        return (!(strcmp(++curr,ASSEMBLY)));
+        *fileName = (char *)malloc(length+1);
+        strncpy(*fileName,file,length);
+        return 1;
     }
     return 0;
 }

@@ -7,9 +7,10 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#define ASSEMBLY "as"
+#define ASSEMBLY ".as"
 #define READ "r" /* for fopen */
 #define WRITE "w" /* for fopen */
 #define A 0 /* absolute */
