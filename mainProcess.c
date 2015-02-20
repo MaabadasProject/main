@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
         {
             //  TODO: write here process for assembly files
             free(fileName);
-            fclose(currAsFile);
         }
+        fclose(currAsFile);
     }
     return 0;
 }
