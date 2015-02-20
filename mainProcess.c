@@ -16,12 +16,15 @@ int main(int argc, char *argv[])
     
     for (i = 1; i < argc; i++)
     {
-        if ((currAsFile = fopen(argv[i],READ)) && (assemblyFile(argv[i],&fileName)))
+        if (assemblyFile(argv[i],&fileName))
         {
-            //  TODO: write here process for assembly files
+            if (currAsFile = fopen(argv[i],READ))
+            {
+                //  TODO: write here process for assembly files
+                fclose(currAsFile);
+            }
             free(fileName);
         }
-        fclose(currAsFile);
     }
     return 0;
 }
