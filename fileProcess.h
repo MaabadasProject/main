@@ -13,11 +13,10 @@ typedef struct Node
     char *name;
     unsigned long int address;
     struct Node *next;
-}Symbol;
+} Symbol;
 
 typedef struct
 {
     Symbol *head;
-    int length;
-}SymbolList;
+} SymbolList;
 
