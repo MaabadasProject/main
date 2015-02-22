@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include "definitions.h"
 
 int loc = 0;
 char buff[100];
