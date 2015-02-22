@@ -12,3 +12,24 @@ void processFile (FILE *asFile, char *fileName)
 {
     
 }
+
+int get_opcode() {
+  int i;
+  for(i = 0;i < 16;i++) {
+    int j;
+    for (j = 0;opcodes[i][j];j++) {
+      int c = getc();
+      if (c != opcodes[i][j])
+      {
+		ungetc(c);
+		for (j-- ; j >= 0; j--)
+		  ungetc(opcodes[i][j]);
+		break;
+      }
+    }
+    if (j != -1) /* if parsing succeeded */
+      return i;
+  }
+  puts("unrecognized opcode");
+  return -1;
+}
