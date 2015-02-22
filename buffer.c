@@ -10,7 +10,7 @@ int getc() {
 }
 
 /* like getc, but skips spaces */
-int getcs() {
+int getcs() { /* STYLE WARS INITIATED */
 	char c;
 	while ((c = getc()) != ' ')
 		;
