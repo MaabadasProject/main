@@ -18,5 +18,6 @@ typedef struct Node
 typedef struct
 {
     Symbol *head;
+    int length;
 }SymbolList;
 
