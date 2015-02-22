@@ -43,6 +43,21 @@ char *opcodes[16] =
 #endif
 
 typedef struct {
+	enum {Command, Request} action; /* the action kind of the assembly statement */
+	char *label;
+	union { /* the data of this assembly statement */
+		struct { /* a request */
+			enum {DATA, STRING, ENTRY, EXTERN} kind;
+			void data; /* the data of the command; unimplemented */
+		} request;
+		struct { /* a command */
+			int opcode; /* the location in the opcodes table */
+			char *p1, *p2, *p3; /* the three parameters. consider changing the type (probably a location in the symbol table?) */
+		} command;
+	}
+}
+
+typedef struct {
     int mode   :2; /* E/R/A */
     int target :2; /* target operand Addressing method*/
     int source :2; /* source operand Addressing method*/

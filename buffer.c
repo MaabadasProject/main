@@ -9,6 +9,14 @@ int getc() {
   return buff[--loc];
 }
 
+/* like getc, but skips spaces */
+int getcs() {
+	char c;
+	while ((c = getc()) != ' ')
+		;
+	return c;
+}
+
 void ungetc(char c) {
   buff[loc++] = c;
 }
