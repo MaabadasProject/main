@@ -17,11 +17,14 @@ void processFile (FILE *asFile, char *fileName)
 
 /* this will parse an opcode and return it's position in the table opcodes. */
 /* if an opcode cannot be parsed it will return -1 */
-int get_opcode() {
+int get_opcode()
+{
   int i;
-  for(i = 0;i < 16;i++) {
+  for(i = 0;i < 16;i++)
+  {
     int j;
-    for (j = 0;opcodes[i][j];j++) {
+    for (j = 0;opcodes[i][j];j++)
+    {
       int c = getc();
       if (c != opcodes[i][j])
       {
