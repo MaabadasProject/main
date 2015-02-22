@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         {
             if (currAssemblyFile = fopen(argv[i],READ))
             {
-                process(currAssemblyFile,fileName);//  TODO: write the process for assembly files
+                processFile(currAssemblyFile,fileName);//  TODO: write the process for assembly files
                 fclose(currAssemblyFile);
             }
             free(fileName);
