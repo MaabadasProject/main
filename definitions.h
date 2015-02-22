@@ -44,3 +44,5 @@ typedef struct {
     int target:2; /* target operand */
     int mode  :2; /* E/R/A */
 } instr_h; /* the instruction header - the first word of each instruction */
+
+void process (FILE *file, char *fileName);

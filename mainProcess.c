@@ -11,17 +11,17 @@
 int main(int argc, char *argv[])
 {
     int i;
-    FILE *currAsFile, *currObFile, *currExtFile, *currEntFile;
+    FILE *currAssemblyFile;
     char *fileName = NULL;
     
     for (i = 1; i < argc; i++)
     {
         if (assemblyFile(argv[i],&fileName))
         {
-            if (currAsFile = fopen(argv[i],READ))
+            if (currAssemblyFile = fopen(argv[i],READ))
             {
-                //  TODO: write here process for assembly files
-                fclose(currAsFile);
+                process(currAssemblyFile,fileName);//  TODO: write the process for assembly files
+                fclose(currAssemblyFile);
             }
             free(fileName);
         }
