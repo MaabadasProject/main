@@ -1,19 +1,6 @@
 
 #include "fileProcess.h"
 
-/* this is the whole process. */
-/* this will get an assembly file (the first argument) ready for reading, and the files name. */
-void processFile (FILE *asFile, char *fileName)
-{
-    SymbolList symbols;
-    
-    symbols = symbol_list(asFile);
-    
-    /* TOBE: continued... */
-    
-    free_list(symbols);
-}
-
 
 /* not working */
 Instr *parse() {
@@ -69,19 +56,20 @@ int get_opcode()
 }
 
 /* this will return a SymbolList contains all the symbols in the assembly file */
-SymbolList symbol_list (FILE *asFile)
+SymbolList symbols_list (FILE *asFile)
 {
     SymbolList list;
     Symbol *currSymbol, *lastSymbol;
+    fpos_t *startPos;
     
     &list = new_symbolList();
     fseek(asFile,0L,SEEK_SET);
     
-    list.head = get_symbol_name(asFile,ftell(asFile),list); /* TODO: write this function */
+    list.head = get_symbol_name(asFile,list);
     lastSymbol = list.head;
     if (!lastSymbol)
     {
-        while ((currSymbol = get_symbol_name(asFile,ftell(asFile),list))) /* TODO: write this function */
+        while ((currSymbol = get_symbol_name(asFile,list)))
         {
             lastSymbol->next = currSymbol;
             lastSymbol = lastSymbol->next;
@@ -90,49 +78,32 @@ SymbolList symbol_list (FILE *asFile)
     return list;
 }
 
-/* returns a pointer to a new SymbolList created using malloc */
-SymbolList * new_symbolList()
-{
-    SymbolList *list;
-    list = (SymbolList *)malloc(sizeof(SymbolList));
-    list->head = NULL;
-    return list;
-}
 
-/* returns a pointer to a new Symbol created using malloc */
-/* symName should by shorter than 31 chars */
-Symbol * new_symbol(char *symName, unsigned long int symAddress)
-{
-    Symbol *sym;
-    sym = (Symbol *)malloc(sizeof(Symbol));
-    strcpy(sym->name,symName);
-    sym->address = symAddress;
-    sym->next = NULL;
-    return sym;
-}
 
-/* this will free the symbols list */
-void free_list (SymbolList list)
-{
-    if (list.head)
-    {
-        Symbol *curr, *post;
-        curr = list.head;
-        post = curr->next;
-        while (post)
-        {
-            free(curr);
-            curr = post;
-            post = post->next;
-        }
-        free(curr);
-    }
-    free(list);
-}
+
 
 /* this will return each time a new symbol */
 /* returns NULL if there are no more symbols in the file */
-Symbol * get_symbol_name (FILE *asFile, long startPos, SymbolList knoneSymbols)
+Symbol * get_symbol_name (FILE *asFile, SymbolList knoneSymbols)
 {
-    /*TODO: write this function */
+    static long lineCount = 0;
+    char name[MAX_SYMBOL_NAME + 2]; /* +2 for ':' and '\0' */
+    Symbol *sym;
+    
+    while (fscanf(asFile, "%.*s", MAX_SYMBOL_NAME+1, name) == 1)
+    {
+        if (isSymbol(name))
+        {
+            sym = new_symbol(name,lineCount);
+            set_new_line();
+            lineCount++;
+            return sym;
+        }
+        else
+        {
+            set_new_line();
+            lineCount++;
+        }
+    }
+    return NULL;
 }
