@@ -13,7 +13,7 @@
 typedef struct Node
 {
     char name[MAX_SYMBOL_NAME + 1]; /* +1 for '\0' */
-    unsigned long int address;
+    long address;
     struct Node *next;
 } Symbol;
 
@@ -24,11 +24,11 @@ typedef struct
 
 int get_opcode(void);
 
-SymbolList symbol_list (FILE *);
+SymbolList symbols_list (FILE *);
 
 SymbolList * new_symbolList();
 
-Symbol * new_symbol(char *, unsigned long int);
+Symbol * new_symbol(char *, long);
 
 void free_list (SymbolList);
 

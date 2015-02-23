@@ -6,8 +6,10 @@
 void processFile (FILE *asFile, char *fileName)
 {
     SymbolList symbols;
+    My_File file;
     
-    symbols = symbol_list(asFile);
+    file = new_file(asFile);
+    symbols = symbols_list(asFile);
     
     /* TOBE: continued... */
     
@@ -69,19 +71,20 @@ int get_opcode()
 }
 
 /* this will return a SymbolList contains all the symbols in the assembly file */
-SymbolList symbol_list (FILE *asFile)
+SymbolList symbols_list (FILE *asFile)
 {
     SymbolList list;
     Symbol *currSymbol, *lastSymbol;
+    fpos_t *startPos;
     
     &list = new_symbolList();
     fseek(asFile,0L,SEEK_SET);
     
-    list.head = get_symbol_name(asFile,ftell(asFile),list); /* TODO: write this function */
+    list.head = get_symbol_name(asFile,list);
     lastSymbol = list.head;
     if (!lastSymbol)
     {
-        while ((currSymbol = get_symbol_name(asFile,ftell(asFile),list))) /* TODO: write this function */
+        while ((currSymbol = get_symbol_name(asFile,list)))
         {
             lastSymbol->next = currSymbol;
             lastSymbol = lastSymbol->next;
@@ -101,11 +104,12 @@ SymbolList * new_symbolList()
 
 /* returns a pointer to a new Symbol created using malloc */
 /* symName should by shorter than 31 chars */
-Symbol * new_symbol(char *symName, unsigned long int symAddress)
+Symbol * new_symbol(char *symName, long symAddress)
 {
     Symbol *sym;
     sym = (Symbol *)malloc(sizeof(Symbol));
-    strcpy(sym->name,symName);
+    strncpy(sym->name,symName,MAX_SYMBOL_NAME);
+    sym->name[MAX_SYMBOL_NAME+1] = '\0';
     sym->address = symAddress;
     sym->next = NULL;
     return sym;
@@ -132,7 +136,26 @@ void free_list (SymbolList list)
 
 /* this will return each time a new symbol */
 /* returns NULL if there are no more symbols in the file */
-Symbol * get_symbol_name (FILE *asFile, long startPos, SymbolList knoneSymbols)
+Symbol * get_symbol_name (FILE *asFile, SymbolList knoneSymbols)
 {
-    /*TODO: write this function */
+    static long lineCount = 0;
+    char name[MAX_SYMBOL_NAME + 2]; /* +2 for ':' and '\0' */
+    Symbol *sym;
+    
+    while (fscanf(asFile, "%.*s", MAX_SYMBOL_NAME+1, name) == 1)
+    {
+        if (isSymbol(name))
+        {
+            sym = new_symbol(name,lineCount);
+            set_new_line();
+            lineCount++;
+            return sym;
+        }
+        else
+        {
+            set_new_line();
+            lineCount++;
+        }
+    }
+    return NULL;
 }
