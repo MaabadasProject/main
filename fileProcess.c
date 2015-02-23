@@ -9,7 +9,7 @@ void processFile (FILE *asFile, char *fileName)
     
     symbols = symbol_list(asFile);
     
-    /* TOBE: continue... */
+    /* TOBE: continued... */
     
     free_list(symbols);
 }
