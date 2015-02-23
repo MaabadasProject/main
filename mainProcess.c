@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         {
             if (currAssemblyFile = fopen(argv[i],READ))
             {
-                processFile(currAssemblyFile,fileName);//  TODO: write the process for assembly files
+                processFile(currAssemblyFile,fileName);
                 fclose(currAssemblyFile);
             }
             free(fileName);
@@ -47,4 +47,20 @@ int assemblyFile(char *file, char **fileName)
         return 1;
     }
     return 0;
+}
+
+/* this is the whole process. */
+/* this will get an assembly file (the first argument) ready for reading, and the files name. */
+void processFile (FILE *asFile, char *fileName)
+{
+    SymbolList symbols;
+    My_File file;
+    
+    file = new_file(asFile);
+    symbols = symbols_list(asFile);
+    
+    /* TOBE: continued... */
+    
+    free_list(symbols);
+    free_file(file);
 }

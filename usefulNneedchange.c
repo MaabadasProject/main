@@ -1,21 +1,6 @@
 
 #include "fileProcess.h"
 
-/* this is the whole process. */
-/* this will get an assembly file (the first argument) ready for reading, and the files name. */
-void processFile (FILE *asFile, char *fileName)
-{
-    SymbolList symbols;
-    My_File file;
-    
-    file = new_file(asFile);
-    symbols = symbols_list(asFile);
-    
-    /* TOBE: continued... */
-    
-    free_list(symbols);
-}
-
 
 /* not working */
 Instr *parse() {
@@ -93,46 +78,9 @@ SymbolList symbols_list (FILE *asFile)
     return list;
 }
 
-/* returns a pointer to a new SymbolList created using malloc */
-SymbolList * new_symbolList()
-{
-    SymbolList *list;
-    list = (SymbolList *)malloc(sizeof(SymbolList));
-    list->head = NULL;
-    return list;
-}
 
-/* returns a pointer to a new Symbol created using malloc */
-/* symName should by shorter than 31 chars */
-Symbol * new_symbol(char *symName, long symAddress)
-{
-    Symbol *sym;
-    sym = (Symbol *)malloc(sizeof(Symbol));
-    strncpy(sym->name,symName,MAX_SYMBOL_NAME);
-    sym->name[MAX_SYMBOL_NAME+1] = '\0';
-    sym->address = symAddress;
-    sym->next = NULL;
-    return sym;
-}
 
-/* this will free the symbols list */
-void free_list (SymbolList list)
-{
-    if (list.head)
-    {
-        Symbol *curr, *post;
-        curr = list.head;
-        post = curr->next;
-        while (post)
-        {
-            free(curr);
-            curr = post;
-            post = post->next;
-        }
-        free(curr);
-    }
-    free(list);
-}
+
 
 /* this will return each time a new symbol */
 /* returns NULL if there are no more symbols in the file */

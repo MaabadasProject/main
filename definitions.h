@@ -65,4 +65,3 @@ typedef struct {
     int group  :2; /* the amount of operands for this instruction */
 } instr_h; /* the instruction header - the first word of each instruction */
 
-void processFile (FILE *file, char *fileName);
