@@ -1,10 +1,3 @@
-//
-//  Symbols.c
-//  
-//
-//  Created by Yaki on 2/23/15.
-//
-//
 
 #include "Symbols.h"
 
@@ -38,13 +31,7 @@ SymbolList * new_symbolList()
 
 /* returns a pointer to a new Symbol created using malloc */
 /* symName should by shorter than 31 chars */
-Symbol * new_symbol(char *symName, long symAddress)
+Symbol * new_symbol(char *symName, long symValue)
 {
-    Symbol *sym;
-    sym = (Symbol *)malloc(sizeof(Symbol));
-    strncpy(sym->name,symName,MAX_SYMBOL_NAME);
-    sym->name[MAX_SYMBOL_NAME+1] = '\0';
-    sym->address = symAddress;
-    sym->next = NULL;
-    return sym;
+    /* TODO: write when it's time */
 }
