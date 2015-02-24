@@ -49,7 +49,7 @@ int assemblyFile(char *file, char **fileName)
     return 0;
 }
 
-/* this is the whole process. */
+/* this is the whole process for a file. */
 /* this will get an assembly file (the first argument) ready for reading, and the files name. */
 void processFile (FILE *asFile, char *fileName)
 {

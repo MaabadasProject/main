@@ -21,6 +21,7 @@
 #define R 2 /* relocatable */
 enum {FIRST,SECOND,THIRD} /* group number */
 enum {IMMEDIATE,DIRECT,DISTANCE,REGISTER} /* Addressing methods */
+#define MAX_SYMBOL_NAME 30
 
 #ifndef opcodes
 char *opcodes[16] =
@@ -42,20 +43,33 @@ char *opcodes[16] =
     ,"stop"};
 #endif
 
-typedef struct {
+typedef struct line
+{
 	enum {Command, Request} kind; /* the kind of the assembly statement */
 	char *label;
-	union { /* the data of this assembly statement */
-		struct { /* a request */
+	union /* the data of this assembly statement */
+    {
+		struct /* a request */
+        {
 			enum {DATA, STRING, ENTRY, EXTERN} kind;
 			void data; /* the data of the command; unimplemented */
 		} request;
-		struct { /* a command */
+		struct /* a command */
+        {
 			int opcode; /* the location in the opcodes table */
-			char *p1, *p2, *p3; /* the three parameters. consider changing the type (probably a location in the symbol table?) */
+			char *p1, *p2; /* the two parameters. consider changing the type (probably a location in the symbol table?) */
 		} command;
 	} data;
-} Instr;
+    struct line *next;
+} My_Line;
+
+typedef struct
+{
+    My_Line *firstLine;
+    enum {NO,YES} makeOb;  /* if syntax error was found */
+    enum {NO,YES} makeExt; /* if .extern was found */
+    enum {NO,YES} maxeEnt; /* if .entry was found */
+}My_File;
 
 typedef struct {
     int mode   :2; /* E/R/A */
@@ -65,3 +79,14 @@ typedef struct {
     int group  :2; /* the amount of operands for this instruction */
 } instr_h; /* the instruction header - the first word of each instruction */
 
+typedef struct Node
+{
+    char *name;
+    long value;
+    struct Node *next;
+} Symbol;
+
+typedef struct
+{
+    Symbol *head;
+} SymbolList;
