@@ -15,7 +15,7 @@ My_File new_file (FILE *asFile)
     file.makeEnt = NO;
     
     fseek(asFile,0L,SEEK_SET);
-    if (getLine(str_line))
+    if (getLine(&str_line))
     {
         prev = new_line(str_line);
         if (prev->kind == Request)
@@ -31,7 +31,7 @@ My_File new_file (FILE *asFile)
         }
         file.firstLine = prev;
         free(str_line);
-        while (getLine(str_line))
+        while (getLine(&str_line))
         {
             curr = new_line(str_line);
             
@@ -60,7 +60,7 @@ My_Line * new_line (/* TODO: write when it's time */)
     /* TODO: write when it's time */
 }
 
-int getLine(char *line)
+int getLine(char **line)
 {
     /* TODO: write when it's time */
 }
