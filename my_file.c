@@ -27,15 +27,17 @@ My_File new_file (FILE *asFile)
         }
         else if (prev->kind == Error)
         {
+			/* isn't there a better way to handle errors? or is it not an error? */
             file.makeOb = NO;
         }
         file.firstLine = prev;
         free(str_line);
-        while (getLine(&str_line))
-        {
+        while (getLine(&str_line)) /* why do you work on prev but not on curr in this loop? prev is already processed and the last line will be skipped. */
+        {                          /* seems like you should change the names and get one while or do-while loop */
             curr = new_line(str_line);
             
-            if (prev->kind == Request)
+            if (prev->kind == Request) 
+			                            
             {
                 if (prev->data.request.kind == ENTRY)
                     file.makeEnt = YES;
@@ -60,7 +62,7 @@ My_Line * new_line (/* TODO: write when it's time */)
     /* TODO: write when it's time */
 }
 
-/* what does this function do? noam */
+/* what does this function do? document noam */
 int getLine(char **line)
 {
     /* TODO: write when it's time */
@@ -96,7 +98,7 @@ void free_line(My_Line *line)
 				free(line->data.command.p2);
 				break;
 			case Request:
-				// free(line->data.request) // data unimplemented; might need a free in the future
+				// free(line->data.request.data) // data unimplemented; might need a free in the future
 				break;
 		}
 		ptr = line->next;

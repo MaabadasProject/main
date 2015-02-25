@@ -16,11 +16,11 @@ int main(int argc, char *argv[])
     
     for (i = 1; i < argc; i++)
     {
-        if (assemblyFile(argv[i],&fileName))
+        if (assemblyFile(argv[i], &fileName)) // what about other kinds of files
         {
-            if (currAssemblyFile = fopen(argv[i],READ))
+            if (currAssemblyFile = fopen(argv[i], READ))
             {
-                processFile(currAssemblyFile,fileName);
+                processFile(currAssemblyFile, fileName);
                 fclose(currAssemblyFile);
             }
             free(fileName);
