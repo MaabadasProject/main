@@ -45,8 +45,8 @@ char *opcodes[16] =
 
 typedef struct line
 {
-	enum {Command, Request} kind; /* the kind of the assembly statement */
-	char *label;
+    char *label;
+	enum {Command, Request, Error} kind; /* the kind of the assembly statement */
 	union /* the data of this assembly statement */
     {
 		struct /* a request */
