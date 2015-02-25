@@ -60,6 +60,7 @@ My_Line * new_line (/* TODO: write when it's time */)
     /* TODO: write when it's time */
 }
 
+/* what does this function do? noam */
 int getLine(char **line)
 {
     /* TODO: write when it's time */
@@ -85,5 +86,21 @@ void free_file(My_File file)
 
 void free_line(My_Line *line)
 {
-    /* TODO: write when it's time */
+	My_Line ptr;
+	
+	while (line != NULL) {
+		free(line->label);
+		switch(line->data) {
+			case Command:
+				free(line->data.command.p1);
+				free(line->data.command.p2);
+				break;
+			case Request:
+				// free(line->data.request) // data unimplemented; might need a free in the future
+				break;
+		}
+		ptr = line->next;
+		free(line);
+		line = ptr;
+	}
 }

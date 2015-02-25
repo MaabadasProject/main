@@ -44,7 +44,7 @@ int assemblyFile(char *file, char **fileName)
     {
         *fileName = (char *)malloc(length+1);
         strncpy(*fileName,file,length);
-        return 1;
+        return 1; /* why? 1 indicates error. 0 indicates success */
     }
     return 0;
 }
@@ -60,6 +60,7 @@ void processFile (FILE *asFile, char *fileName)
     symbols = symbols_list(asFile);
     
     /* TOBE: continued... */
+	/* TODO: (so this can be fined in one find */
     
     free_list(symbols);
     free_file(file);
