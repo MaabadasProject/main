@@ -146,7 +146,9 @@ void free_file(My_File file)
 
 void free_line(My_Line *line)
 {
-	My_Line ptr;
+	/* wait 'till we write the new_line func */
+	
+	/*My_Line ptr;
 	
 	while (line != NULL) {
 		free(line->label);
@@ -162,5 +164,5 @@ void free_line(My_Line *line)
 		ptr = line->next;
 		free(line);
 		line = ptr;
-	}
+	}*/
 }
