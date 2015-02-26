@@ -1,12 +1,24 @@
 
 #include "my_file.h"
 
+#define my_getc(line,ch)\
+{\
+    char c = *(line);\
+    while (c == ' ' || '\t')\
+        c = *(++(line));\
+    ch = c;\
+    (line)++;\
+}
+
+#define is_error(word) (*(word)) == '\0'
 
 My_File new_file (FILE *asFile)
 {
     My_File file;
-    char *str_line;
+    char str_line[MAX_LINE_LENGTH];
     My_Line *curr, *prev;
+    
+    curr = prev = NULL;
     
     &file = (My_File *)malloc(sizeof(My_File));
     file.firstLine = NULL;
@@ -14,15 +26,15 @@ My_File new_file (FILE *asFile)
     file.makeExt = NO;
     file.makeEnt = NO;
     
-    fseek(asFile,0L,SEEK_SET);
-    if (getLine(&str_line))
+    while (fgets(str_line,MAX_LINE_LENGTH,asFile) && !(prev = new_line(str_line)));
+    
+    if (prev)
     {
-        prev = new_line(str_line);
         if (prev->kind == Request)
         {
-            if (prev->data.request.kind == ENTRY)
+            if (prev->statement.request.kind == ENTRY)
                 file.makeEnt = YES;
-            else if (prev->data.request.kind == EXTERN)
+            else if (prev->statement.request.kind == EXTERN)
                 file.makeExt = YES;
         }
         else if (prev->kind == Error)
@@ -31,6 +43,7 @@ My_File new_file (FILE *asFile)
             file.makeOb = NO;
         }
         file.firstLine = prev;
+<<<<<<< HEAD
         free(str_line);
         while (getLine(&str_line)) /* why do you work on prev but not on curr in this loop? prev is already processed and the last line will be skipped. */
         {                          /* seems like you should change the names and get one while or do-while loop */
@@ -38,32 +51,94 @@ My_File new_file (FILE *asFile)
             
             if (prev->kind == Request) 
 			                            
+=======
+        
+        while (fgets(str_line,MAX_LINE_LENGTH,asFile))
+        {
+            if ((curr = new_line(str_line)))
+>>>>>>> guyChanges
             {
-                if (prev->data.request.kind == ENTRY)
-                    file.makeEnt = YES;
-                else if (prev->data.request.kind == EXTERN)
-                    file.makeExt = YES;
+                if (curr->kind == Request)
+                {
+                    if (curr->statement.request.kind == ENTRY)
+                        file.makeEnt = YES;
+                    else if (curr->statement.request.kind == EXTERN)
+                        file.makeExt = YES;
+                }
+                else if (curr->kind == Error)
+                {
+                    file.makeOb = NO;
+                }
+                
+                prev->next = curr;
+                prev = prev->next;
             }
-            else if (prev->kind == Error)
-            {
-                file.makeOb = NO;
-            }
-            
-            prev->next = curr;
-            prev = prev->next;
-            free(str_line);
         }
     }
+    
     return file;
 }
 
-My_Line * new_line (/* TODO: write when it's time */)
+My_Line * new_line (char line[])
+{
+    char *first = getFirstWord(&line);
+    if (*first == ';' || *first == '\n')
+    {
+        return NULL;
+    }
+    else
+    {
+        if (is_error(first))
+        {
+            
+        }
+        else if (is_request(first))
+        {
+            
+        }
+        else if (is_command(first))
+        {
+            
+        }
+        else /* if "first" is label */
+        {
+            
+        }
+    }
+}
+
+char * getFirstWord (char **line)
+{
+    int i = 1;
+    char *word = (char *)malloc(MAX_SYMBOL_NAME + 1); /* +1 for '\0' */
+    my_getc(*line,word[0]);
+    
+    while (!isspace(**line) && (**line) != '\0' && i < MAX_SYMBOL_NAME)
+    {
+        word[i] = (**line);
+        (*line)++;
+        i++;
+    }
+    if (!isspace(**line) && (**line))
+    {
+        i = 0;
+    }
+    word[i] = '\0';
+    
+    return word;
+}
+
+int is_request (char *word)
 {
     /* TODO: write when it's time */
 }
 
+<<<<<<< HEAD
 /* what does this function do? document noam */
 int getLine(char **line)
+=======
+int is_command (char *word)
+>>>>>>> guyChanges
 {
     /* TODO: write when it's time */
 }
