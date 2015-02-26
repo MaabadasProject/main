@@ -20,7 +20,7 @@
 #define E 1 /* external */
 #define R 2 /* relocatable */
 enum {FIRST,SECOND,THIRD} /* group number */
-enum {IMMEDIATE,DIRECT,DISTANCE,REGISTER} /* Addressing methods */
+enum Addressing {IMMEDIATE,DIRECT,DISTANCE,REGISTER} /* Addressing methods */
 #define MAX_SYMBOL_NAME 30
 
 #ifndef opcodes
@@ -43,6 +43,18 @@ char *opcodes[16] =
     ,"stop"};
 #endif
 
+#ifndef registers
+char *registers[8] =
+    {"r0"
+    ,"r1"
+    ,"r2"
+    ,"r3"
+    ,"r4"
+    ,"r5"
+    ,"r6"
+    ,"r7"};
+#endif
+
 typedef struct line
 {
     char *label;
@@ -52,16 +64,26 @@ typedef struct line
 		struct /* a request */
         {
 			enum {DATA, STRING, ENTRY, EXTERN} kind;
-			void data; /* the data of the command; unimplemented */
+			union
+            {
+                int *arr; /* for .data */
+                char *str; /* for .string, .entry and .extern */
+            } data; /* the data of the command; unimplemented */
 		} request;
 		struct /* a command */
         {
 			int opcode; /* the location in the opcodes table */
-			char *p1, *p2; /* the two parameters. consider changing the type (probably a location in the symbol table?) */
+			parameter *p1, *p2; /* the two parameters. consider changing the type (probably a location in the symbol table?) */
 		} command;
-	} data;
+	} statement;
     struct line *next;
 } My_Line;
+
+typedef struct
+{
+    enum Addressing kind;
+    char *value;
+}parameter;
 
 typedef struct
 {
