@@ -39,13 +39,29 @@ My_File new_file (FILE *asFile)
         }
         else if (prev->kind == Error)
         {
+			/* isn't there a better way to handle errors? or is it not an error? */
             file.makeOb = NO;
         }
         file.firstLine = prev;
+<<<<<<< HEAD
+=======
+        free(str_line);
+        while (getLine(&str_line)) /* why do you work on prev but not on curr in this loop? prev is already processed and the last line will be skipped. */
+        {                          /* seems like you should change the names and get one while or do-while loop */
+            curr = new_line(str_line);
+            
+            if (prev->kind == Request) 
+			                            
+=======
+>>>>>>> master
         
         while (fgets(str_line,MAX_LINE_LENGTH,asFile))
         {
             if ((curr = new_line(str_line)))
+<<<<<<< HEAD
+=======
+>>>>>>> guyChanges
+>>>>>>> master
             {
                 if (curr->kind == Request)
                 {
@@ -122,7 +138,16 @@ int is_request (char *word)
     /* TODO: write when it's time */
 }
 
+<<<<<<< HEAD
 int is_command (char *word)
+=======
+<<<<<<< HEAD
+/* what does this function do? document noam */
+int getLine(char **line)
+=======
+int is_command (char *word)
+>>>>>>> guyChanges
+>>>>>>> master
 {
     /* TODO: write when it's time */
 }
@@ -147,5 +172,21 @@ void free_file(My_File file)
 
 void free_line(My_Line *line)
 {
-    /* TODO: write when it's time */
+	My_Line ptr;
+	
+	while (line != NULL) {
+		free(line->label);
+		switch(line->data) {
+			case Command:
+				free(line->data.command.p1);
+				free(line->data.command.p2);
+				break;
+			case Request:
+				// free(line->data.request.data) // data unimplemented; might need a free in the future
+				break;
+		}
+		ptr = line->next;
+		free(line);
+		line = ptr;
+	}
 }

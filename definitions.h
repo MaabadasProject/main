@@ -93,7 +93,7 @@ typedef struct
     enum {NO,YES} makeOb;  /* if syntax error was found */
     enum {NO,YES} makeExt; /* if .extern was found */
     enum {NO,YES} maxeEnt; /* if .entry was found */
-}My_File;
+} My_File;
 
 typedef struct {
     int mode   :2; /* E/R/A */

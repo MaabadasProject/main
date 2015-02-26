@@ -16,11 +16,11 @@ int main(int argc, char *argv[])
     
     for (i = 1; i < argc; i++)
     {
-        if (assemblyFile(argv[i],&fileName))
+        if (assemblyFile(argv[i], &fileName)) // what about other kinds of files
         {
-            if (currAssemblyFile = fopen(argv[i],READ))
+            if (currAssemblyFile = fopen(argv[i], READ))
             {
-                processFile(currAssemblyFile,fileName);
+                processFile(currAssemblyFile, fileName);
                 fclose(currAssemblyFile);
             }
             free(fileName);
@@ -44,7 +44,7 @@ int assemblyFile(char *file, char **fileName)
     {
         *fileName = (char *)malloc(length+1);
         strncpy(*fileName,file,length);
-        return 1;
+        return 1; /* why? 1 indicates error. 0 indicates success */
     }
     return 0;
 }
@@ -60,6 +60,7 @@ void processFile (FILE *asFile, char *fileName)
     symbols = symbols_list(asFile);
     
     /* TOBE: continued... */
+	/* TODO: (so this can be fined in one find */
     
     free_list(symbols);
     free_file(file);

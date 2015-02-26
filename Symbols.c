@@ -34,4 +34,10 @@ SymbolList * new_symbolList()
 Symbol * new_symbol(char *symName, long symValue)
 {
     /* TODO: write when it's time */
+	Symbol *p;
+	p = (Symbol *) malloc (sizeof(Symbol *));
+	p->name = symName; // maybe copy it instead of rereferencing it?
+	p->value = symValue;
+	p->next = NULL;
+	return p;
 }
