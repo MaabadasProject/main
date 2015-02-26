@@ -43,7 +43,6 @@ My_File new_file (FILE *asFile)
             file.makeOb = NO;
         }
         file.firstLine = prev;
-<<<<<<< HEAD
         free(str_line);
         while (getLine(&str_line)) /* why do you work on prev but not on curr in this loop? prev is already processed and the last line will be skipped. */
         {                          /* seems like you should change the names and get one while or do-while loop */
