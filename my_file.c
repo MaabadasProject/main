@@ -1,13 +1,10 @@
 
 #include "my_file.h"
 
-#define my_getc(line,ch)\
+#define skip_spaces(line)\
 {\
-    char c = *(line);\
-    while (c == ' ' || '\t')\
-        c = *(++(line));\
-    ch = c;\
-    (line)++;\
+    while(*(line) == ' ' || *(line) == '\t')\
+    	(line)++;\
 }
 
 #define is_error(word) (*(word)) == '\0'
@@ -97,9 +94,10 @@ My_Line * new_line (char line[])
 
 char * getFirstWord (char **line)
 {
-    int i = 1;
+    int i = 0;
     char *word = (char *)malloc(MAX_SYMBOL_NAME + 1); /* +1 for '\0' */
-    my_getc(*line,word[0]);
+    
+    skip_spaces(*line);
     
     while (!isspace(**line) && (**line) != '\0' && i < MAX_SYMBOL_NAME)
     {
@@ -146,7 +144,9 @@ void free_file(My_File file)
 
 void free_line(My_Line *line)
 {
-	My_Line ptr;
+	/* wait 'till we write the new_line func */
+	
+	/*My_Line ptr;
 	
 	while (line != NULL) {
 		free(line->label);
@@ -162,5 +162,5 @@ void free_line(My_Line *line)
 		ptr = line->next;
 		free(line);
 		line = ptr;
-	}
+	}*/
 }
