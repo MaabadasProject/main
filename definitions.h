@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define ASSEMBLY ".as"
 #define OBJECT ".ob"
@@ -22,6 +23,7 @@
 enum {FIRST,SECOND,THIRD} /* group number */
 enum Addressing {IMMEDIATE,DIRECT,DISTANCE,REGISTER} /* Addressing methods */
 #define MAX_SYMBOL_NAME 30
+#define MAX_LINE_LENGTH 80
 
 #ifndef opcodes
 char *opcodes[16] =
@@ -73,7 +75,7 @@ typedef struct line
 		struct /* a command */
         {
 			int opcode; /* the location in the opcodes table */
-			parameter *p1, *p2; /* the two parameters. consider changing the type (probably a location in the symbol table?) */
+			parameter *p1, *p2; /* the two parameters */
 		} command;
 	} statement;
     struct line *next;
