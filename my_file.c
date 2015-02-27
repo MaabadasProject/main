@@ -66,33 +66,31 @@ My_File new_file (FILE *asFile)
 
 My_Line * new_line (char line[])
 {
-    char *first = getFirstWord(&line);
-    if (*first == ';' || *first == '\n')
+    char *first = getWord(&line);
+    
+    if (is_label(first))
+    {
+        
+    }
+    else if (is_error(first))
+    {
+        
+    }
+    else if (is_request(first))
+    {
+        
+    }
+    else if (is_command(first))
+    {
+        
+    }
+    else /* if "line" is empty or comment */
     {
         return NULL;
     }
-    else
-    {
-        if (is_error(first))
-        {
-            
-        }
-        else if (is_request(first))
-        {
-            
-        }
-        else if (is_command(first))
-        {
-            
-        }
-        else /* if "first" is label */
-        {
-            
-        }
-    }
 }
 
-char * getFirstWord (char **line)
+char * getWord (char **line)
 {
     int i = 0;
     char *word = (char *)malloc(MAX_SYMBOL_NAME + 1); /* +1 for '\0' */
@@ -120,6 +118,11 @@ int is_request (char *word)
 }
 
 int is_command (char *word)
+{
+    /* TODO: write when it's time */
+}
+
+int is_label (char *word)
 {
     /* TODO: write when it's time */
 }
