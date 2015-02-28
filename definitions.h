@@ -23,6 +23,8 @@
 enum {FIRST,SECOND,THIRD} /* group number */
 enum Addressing {IMMEDIATE,DIRECT,DISTANCE,REGISTER} /* Addressing methods */
 #define MAX_SYMBOL_NAME 30
+#define MAX_WORD_LENGTH 50
+#define MAX_ERROR_LENGTH 50
 #define MAX_LINE_LENGTH 80
 
 #ifndef opcodes
@@ -59,7 +61,7 @@ char *registers[8] =
 
 typedef struct line
 {
-    char *label;
+    char label[MAX_SYMBOL_NAME];
 	enum {Command, Request, Error} kind; /* the kind of the assembly statement */
 	union /* the data of this assembly statement */
     {
@@ -77,6 +79,7 @@ typedef struct line
 			int opcode; /* the location in the opcodes table */
 			parameter *p1, *p2; /* the two parameters */
 		} command;
+        char *error;
 	} statement;
     struct line *next;
 } My_Line;
