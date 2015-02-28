@@ -107,13 +107,13 @@ void getWord (char **line, char word[])
     
     while ((**line) != ' ' && (**line) != '\t' && (**line) != '\0' && i < MAX_WORD_LENGTH - 1)
     {
-        word[i] = (**line);
+        word[i++] = (**line);
         (*line)++;
-        i++;
     }
-    if ((**line) != ' ' && (**line) != '\t' && (**line) != '\0')
+    if (i < MAX_WORD_LENGTH - 1)
     {
-        i = 0;
+        puts("the word is too long");
+		exit(1);
     }
     word[i] = '\0';
 }

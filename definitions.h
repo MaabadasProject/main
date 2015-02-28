@@ -79,7 +79,7 @@ typedef struct line
 			int opcode; /* the location in the opcodes table */
 			parameter *p1, *p2; /* the two parameters */
 		} command;
-        char *error;
+        char *error; /* should be changed to an int to store error codes */
 	} statement;
     struct line *next;
 } My_Line;
