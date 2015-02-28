@@ -7,8 +7,6 @@
     	(line)++;\
 }
 
-#define is_error(word) (*(word)) == '\0'
-
 My_File new_file (FILE *asFile)
 {
     My_File file;
@@ -66,50 +64,71 @@ My_File new_file (FILE *asFile)
 
 My_Line * new_line (char line[])
 {
-    char *first = getWord(&line);
+    char curr[MAX_WORD_LENGTH],err[MAX_ERROR_LENGTH];
+    My_Line *myline;
+    int foundError
     
-    if (is_label(first))
+    foundError = 0;
+    err = (char *)malloc(MAX_ERROR_LENGTH);
+    myline = (My_Line *)malloc(sizeof(My_Line));
+    getWord(&line,curr);
+    
+    if (is_label(curr)) /* if curr is label, it also deletes the trailing ':' */
+    {
+        strcpy(myline->label,curr);
+        getWord(&line,curr);
+    }
+    else
+    {
+        myline->label[0] = '\0';
+    }
+    
+    if (is_command(curr))
     {
         
     }
-    else if (is_error(first))
+    else if (is_request(curr))
     {
         
     }
-    else if (is_request(first))
+    else if (is_empty(curr)) /* if "line" is empty or comment */
     {
-        
-    }
-    else if (is_command(first))
-    {
-        
-    }
-    else /* if "line" is empty or comment */
-    {
+        free(myline);
+        free(err);
         return NULL;
+    }
+    else
+    {
+        strcpy(err,"error: couldn't recognize command or request");
+        foundError = 1;
+    }
+    
+    if (foundError)/* if contains an error */
+    {
+        myline->kind = Error;
+        myline->label = NULL;
+        myline->statement.error = err;
+        return myline;
     }
 }
 
-char * getWord (char **line)
+void getWord (char **line,char word[])
 {
     int i = 0;
-    char *word = (char *)malloc(MAX_SYMBOL_NAME + 1); /* +1 for '\0' */
     
     skip_spaces(*line);
     
-    while (!isspace(**line) && (**line) != '\0' && i < MAX_SYMBOL_NAME)
+    while ((**line) != ' ' && (**line) != '\t' && (**line) != '\0' && i < MAX_WORD_LENGTH - 1)
     {
         word[i] = (**line);
         (*line)++;
         i++;
     }
-    if (!isspace(**line) && (**line))
+    if ((**line) != ' ' && (**line) != '\t' && (**line) != '\0')
     {
         i = 0;
     }
     word[i] = '\0';
-    
-    return word;
 }
 
 int is_request (char *word)
@@ -124,7 +143,21 @@ int is_command (char *word)
 
 int is_label (char *word)
 {
-    /* TODO: write when it's time */
+    if (isalpha(*word))
+    {
+        int count = 1;
+        word++;
+        while (*word && *word != ':')
+        {
+            count++;
+            word++;
+        }
+        if ((*word == ':') && (count <= MAX_SYMBOL_NAME))
+        {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void free_file(My_File file)
