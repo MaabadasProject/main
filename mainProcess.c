@@ -33,10 +33,10 @@ int assemblyFile(char *file, char **fileName)
         length++;
         curr++;
     }
-    if (!(strcmp(curr,ASSEMBLY)))
+    if (!(strcmp(curr, ASSEMBLY)))
     {
         *fileName = (char *)malloc(length+1);
-        strncpy(*fileName,file,length);
+        strncpy(*fileName, file, length);
         return 1; /* why? 1 indicates error. 0 indicates success */
     }
     return 0;

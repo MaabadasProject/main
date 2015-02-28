@@ -13,7 +13,6 @@ My_File new_file (FILE *asFile)
     char str_line[MAX_LINE_LENGTH];
     My_Line *curr, *prev;
     
-    curr = prev = NULL;
     
     &file = (My_File *)malloc(sizeof(My_File));
     file.firstLine = NULL;
@@ -21,62 +20,50 @@ My_File new_file (FILE *asFile)
     file.makeExt = NO;
     file.makeEnt = NO;
     
-    while (fgets(str_line,MAX_LINE_LENGTH,asFile) && !(prev = new_line(str_line)));
-    
-    if (prev)
-    {
-        if (prev->kind == Request)
-        {
-            if (prev->statement.request.kind == ENTRY)
-                file.makeEnt = YES;
-            else if (prev->statement.request.kind == EXTERN)
-                file.makeExt = YES;
-        }
-        else if (prev->kind == Error)
-        {
-            file.makeOb = NO;
-        }
-        file.firstLine = prev;
-        while (fgets(str_line,MAX_LINE_LENGTH,asFile))
-        {
-            if ((curr = new_line(str_line)))
-            {
-                if (curr->kind == Request)
-                {
-                    if (curr->statement.request.kind == ENTRY)
-                        file.makeEnt = YES;
-                    else if (curr->statement.request.kind == EXTERN)
-                        file.makeExt = YES;
-                }
-                else if (curr->kind == Error)
-                {
-                    file.makeOb = NO;
-                }
-                
-                prev->next = curr;
-                prev = prev->next;
-            }
-        }
-    }
+	
+    prev = NULL;
+	while (!feof(asFile)) {
+		curr = new_line(fgets(str_line, MAX_LINE_LENGTH, asFile));
+		if (curr->kind == Request)
+		{
+			if (curr->statement.request.kind == ENTRY)
+				file.makeEnt = YES;
+			else if (curr->statement.request.kind == EXTERN)
+				file.makeExt = YES;
+		}
+		else if (curr->kind == Error)
+		{
+			file.makeOb = NO;
+		}
+		if (prev == NULL)
+		{
+			file.firstLine = curr;
+			prev = curr;
+		}
+		else
+		{
+			prev->next = curr;
+			prev = prev->next;
+		}
+	}
     
     return file;
 }
 
 My_Line * new_line (char line[])
 {
-    char curr[MAX_WORD_LENGTH],err[MAX_ERROR_LENGTH];
+    char curr[MAX_WORD_LENGTH], err[MAX_ERROR_LENGTH];
     My_Line *myline;
-    int foundError
+    int foundError = 0;
     
-    foundError = 0;
     err = (char *)malloc(MAX_ERROR_LENGTH);
     myline = (My_Line *)malloc(sizeof(My_Line));
-    getWord(&line,curr);
+    getWord(&line, curr);
     
     if (is_label(curr)) /* if curr is label, it also deletes the trailing ':' */
     {
-        strcpy(myline->label,curr);
-        getWord(&line,curr);
+        strcpy(myline->label, curr);
+        getWord(&line, curr);
     }
     else
     {
@@ -99,7 +86,7 @@ My_Line * new_line (char line[])
     }
     else
     {
-        strcpy(err,"error: couldn't recognize command or request");
+        strcpy(err, "error: couldn't recognize command or request");
         foundError = 1;
     }
     
@@ -112,7 +99,7 @@ My_Line * new_line (char line[])
     }
 }
 
-void getWord (char **line,char word[])
+void getWord (char **line, char word[])
 {
     int i = 0;
     
@@ -164,7 +151,7 @@ void free_file(My_File file)
 {
     if (file.firstLine)
     {
-        My_Line *curr,*post;
+        My_Line *curr, *post;
         curr = file.firstLine;
         post = curr.next;
         while (post)

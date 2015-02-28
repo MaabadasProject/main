@@ -20,8 +20,8 @@
 #define A 0 /* absolute */
 #define E 1 /* external */
 #define R 2 /* relocatable */
-enum {FIRST,SECOND,THIRD} /* group number */
-enum Addressing {IMMEDIATE,DIRECT,DISTANCE,REGISTER} /* Addressing methods */
+enum {FIRST, SECOND, THIRD} /* group number */
+enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER} /* Addressing methods */
 #define MAX_SYMBOL_NAME 30
 #define MAX_WORD_LENGTH 50
 #define MAX_ERROR_LENGTH 50
@@ -30,33 +30,33 @@ enum Addressing {IMMEDIATE,DIRECT,DISTANCE,REGISTER} /* Addressing methods */
 #ifndef opcodes
 char *opcodes[16] =
     {"mov"
-    ,"cmp"
-    ,"add"
-    ,"sub"
-    ,"not"
-    ,"clr"
-    ,"lea"
-    ,"inc"
-    ,"dec"
-    ,"jmp"
-    ,"bne"
-    ,"red"
-    ,"prn"
-    ,"jsr"
-    ,"rts"
-    ,"stop"};
+    , "cmp"
+    , "add"
+    , "sub"
+    , "not"
+    , "clr"
+    , "lea"
+    , "inc"
+    , "dec"
+    , "jmp"
+    , "bne"
+    , "red"
+    , "prn"
+    , "jsr"
+    , "rts"
+    , "stop"};
 #endif
 
 #ifndef registers
 char *registers[8] =
     {"r0"
-    ,"r1"
-    ,"r2"
-    ,"r3"
-    ,"r4"
-    ,"r5"
-    ,"r6"
-    ,"r7"};
+    , "r1"
+    , "r2"
+    , "r3"
+    , "r4"
+    , "r5"
+    , "r6"
+    , "r7"};
 #endif
 
 typedef struct line
@@ -93,9 +93,9 @@ typedef struct
 typedef struct
 {
     My_Line *firstLine;
-    enum {NO,YES} makeOb;  /* if syntax error was found */
-    enum {NO,YES} makeExt; /* if .extern was found */
-    enum {NO,YES} maxeEnt; /* if .entry was found */
+    enum {NO, YES} makeOb;  /* if syntax error was found */
+    enum {NO, YES} makeExt; /* if .extern was found */
+    enum {NO, YES} maxeEnt; /* if .entry was found */
 } My_File;
 
 typedef struct {
