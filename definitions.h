@@ -1,10 +1,3 @@
-//
-//  definitions.h
-//
-//
-//  Created by Guy on 2/19/15.
-//
-//
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,15 +13,18 @@
 #define A 0 /* absolute */
 #define E 1 /* external */
 #define R 2 /* relocatable */
-enum {FIRST, SECOND, THIRD} /* group number */
-enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER} /* Addressing methods */
 #define MAX_SYMBOL_NAME 30
 #define MAX_WORD_LENGTH 50
 #define MAX_ERROR_LENGTH 50
 #define MAX_LINE_LENGTH 80
+#define NUMBER_OF_COMMANDS 16
+#define NUMBER_OF_REGISTERS 8
+#define DELIMITERS " \t,:"
+enum {FIRST, SECOND, THIRD} /* group number */
+enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER} /* Addressing methods */
 
 #ifndef opcodes
-char *opcodes[16] =
+char *opcodes[NUMBER_OF_COMMANDS] =
     {"mov"
     , "cmp"
     , "add"
@@ -48,7 +44,7 @@ char *opcodes[16] =
 #endif
 
 #ifndef registers
-char *registers[8] =
+char *registers[NUMBER_OF_REGISTERS] =
     {"r0"
     , "r1"
     , "r2"

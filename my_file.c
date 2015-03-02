@@ -105,17 +105,22 @@ void getWord (char **line, char word[])
     
     skip_spaces(*line);
     
-    while ((**line) != ' ' && (**line) != '\t' && (**line) != '\0' && i < MAX_WORD_LENGTH - 1)
+    do
     {
-        word[i++] = (**line);
+        word[i] = (**line);
         (*line)++;
-    }
-    if (i < MAX_WORD_LENGTH - 1)
+        i++;
+    }while (!is_delimiter(*(*line - 1)) && i < MAX_WORD_LENGTH - 1);
+    
+    if (!is_delimiter(**line))
     {
-        puts("the word is too long");
-		exit(1);
+        word[0] = '\0';
     }
-    word[i] = '\0';
+    else
+    {
+        word[i] = **line;
+    }
+    
 }
 
 int is_request (char *word)
@@ -132,18 +137,50 @@ int is_label (char *word)
 {
     if (isalpha(*word))
     {
+        char *curr;
         int count = 1;
-        word++;
-        while (*word && *word != ':')
+        curr = word + 1;
+        while (*curr && *curr != ':')
         {
             count++;
-            word++;
+            curr++;
         }
-        if ((*word == ':') && (count <= MAX_SYMBOL_NAME))
+        if ((*curr == ':') && (count <= MAX_SYMBOL_NAME) && !is_keyword(word))
         {
             return 1;
         }
     }
+    return 0;
+}
+
+int is_keyword (char *word)
+{
+    int len,i;
+    len = strlen(word) - 1;
+    
+    for (i = 0; i < NUMBER_OF_COMMANDS; i++)
+        if (!(strncmp(word,opcodes[i],len)))
+            return 1;
+    for (i = 0; i < NUMBER_OF_REGISTERS; i++)
+        if (!(strncmp(word,registers[i],len)))
+            return 1;
+    return 0;
+}
+
+int is_delimiter (char ch)
+{
+    char *curr = DELIMITERS;
+    
+    if (ch == '\0')
+        return 1;
+    
+    while (*curr)
+    {
+        if (*curr == ch)
+            return 1;
+        curr++;
+    }
+    
     return 0;
 }
 
