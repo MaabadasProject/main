@@ -93,7 +93,6 @@ My_Line * new_line (char line[])
     if (foundError)/* if contains an error */
     {
         myline->kind = Error;
-        myline->label = NULL;
         myline->statement.error = err;
         return myline;
     }
@@ -125,12 +124,15 @@ void getWord (char **line, char word[])
 
 int is_request (char *word)
 {
-    /* TODO: write when it's time */
-}
-
-int is_command (char *word)
-{
-    /* TODO: write when it's time */
+    if (!(strcmp(word,".string ")))
+        return 1;
+    if (!(strcmp(word,".data ")))
+        return 1;
+    if (!(strcmp(word,".extern ")))
+        return 1;
+    if (!(strcmp(word,".entry ")))
+        return 1;
+    return 0;
 }
 
 int is_label (char *word)
@@ -142,10 +144,14 @@ int is_label (char *word)
         curr = word + 1;
         while (*curr && *curr != ':')
         {
+            if (!isalnum(*curr))
+            {
+                return 0;
+            }
             count++;
             curr++;
         }
-        if ((*curr == ':') && (count <= MAX_SYMBOL_NAME) && !is_keyword(word))
+        if ((count <= MAX_SYMBOL_NAME) && !is_keyword(word,':'))
         {
             return 1;
         }
@@ -153,17 +159,40 @@ int is_label (char *word)
     return 0;
 }
 
-int is_keyword (char *word)
+int is_keyword (char *word, char del)
 {
-    int len,i;
-    len = strlen(word) - 1;
+    return (is_register(word,del) || is_command(word,del));
+}
+
+int is_command (char *word, char del)
+{
+    int i;
+    char com[MAX_COM_LEN + 2]; /* +2 for del and '\0' */
     
     for (i = 0; i < NUMBER_OF_COMMANDS; i++)
-        if (!(strncmp(word,opcodes[i],len)))
+    {
+        strcpy(com,opcodes[i]);
+        com[strlen(opcodes[i])] = del;
+        com[strlen(opcodes[i])+1] = '\0';
+        if (!(strcmp(word,com)))
             return 1;
+    }
+    return 0;
+}
+
+int is_register (char *word, char del)
+{
+    int i;
+    char reg[MAX_REG_LEN + 2]; /* +2 for del and '\0' */
+    
     for (i = 0; i < NUMBER_OF_REGISTERS; i++)
-        if (!(strncmp(word,registers[i],len)))
+    {
+        strcpy(reg,registers[i]);
+        reg[strlen(registers[i])] = del;
+        reg[strlen(registers[i])+1] = '\0';
+        if (!(strcmp(word,reg)))
             return 1;
+    }
     return 0;
 }
 

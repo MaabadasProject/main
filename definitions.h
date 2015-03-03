@@ -17,6 +17,8 @@
 #define MAX_WORD_LENGTH 50
 #define MAX_ERROR_LENGTH 50
 #define MAX_LINE_LENGTH 80
+#define MAX_REG_LEN 2
+#define MAX_COM_LEN 4
 #define NUMBER_OF_COMMANDS 16
 #define NUMBER_OF_REGISTERS 8
 #define DELIMITERS " \t,:"
@@ -25,7 +27,7 @@ enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER} /* Addressing methods */
 
 #ifndef opcodes
 char *opcodes[NUMBER_OF_COMMANDS] =
-    {"mov"
+    { "mov"
     , "cmp"
     , "add"
     , "sub"
@@ -45,7 +47,7 @@ char *opcodes[NUMBER_OF_COMMANDS] =
 
 #ifndef registers
 char *registers[NUMBER_OF_REGISTERS] =
-    {"r0"
+    { "r0"
     , "r1"
     , "r2"
     , "r3"
