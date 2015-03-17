@@ -19,8 +19,10 @@
 #define MAX_LINE_LENGTH 80
 #define MAX_REG_LEN 2
 #define MAX_COM_LEN 4
+#define MAX_REQ_LEN 7
 #define NUMBER_OF_COMMANDS 16
 #define NUMBER_OF_REGISTERS 8
+#define NUMBER_OF_REQUESTS 4
 #define DELIMITERS " \t,:"
 enum {FIRST, SECOND, THIRD} /* group number */
 enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER} /* Addressing methods */
@@ -43,6 +45,14 @@ char *opcodes[NUMBER_OF_COMMANDS] =
     , "jsr"
     , "rts"
     , "stop"};
+#endif
+
+#ifndef opcodes
+char *requests[NUMBER_OF_REQUESTS] =
+    { ".data"
+    , ".string"
+    , ".entry"
+    , ".extern"};
 #endif
 
 #ifndef registers
@@ -68,7 +78,11 @@ typedef struct line
 			enum {DATA, STRING, ENTRY, EXTERN} kind;
 			union
             {
-                int *arr; /* for .data */
+                struct
+                {
+                    int *arr; /* for .data */
+                    int len;
+                }nums;
                 char *str; /* for .string, .entry and .extern */
             } data; /* the data of the command; unimplemented */
 		} request;
