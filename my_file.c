@@ -54,15 +54,16 @@ My_Line * new_line (char line[])
 {
     char curr[MAX_WORD_LENGTH], err[MAX_ERROR_LENGTH];
     My_Line *myline;
-    int foundError = 0;
+    int foundError, stat;
     
+    foundError = 0;
     err = (char *)malloc(MAX_ERROR_LENGTH);
     myline = (My_Line *)malloc(sizeof(My_Line));
     getWord(&line, curr);
     
-    if (is_label(curr)) /* if curr is label, it also deletes the trailing ':' */
+    if (is_label(curr))
     {
-        strcpy(myline->label, curr);
+        strcpy_label(myline->label, curr);
         getWord(&line, curr);
     }
     else
@@ -70,13 +71,17 @@ My_Line * new_line (char line[])
         myline->label[0] = '\0';
     }
     
-    if (is_command(curr))
+    if ((stat = is_command(curr,NULL)) != -1)
     {
-        
+        myline->kind = Command;
+        myline->statement.command.opcode = stat;
+        foundError = set_as_command(myline,line,err);
     }
-    else if (is_request(curr))
+    else if ((stat = is_request(curr,NULL)) != -1)
     {
-        
+        myline->kind = Request;
+        myline->statement.request.kind = stat;
+        foundError = set_as_request(myline,line,err);
     }
     else if (is_empty(curr)) /* if "line" is empty or comment */
     {
@@ -94,8 +99,9 @@ My_Line * new_line (char line[])
     {
         myline->kind = Error;
         myline->statement.error = err;
-        return myline;
     }
+    
+    return myline;
 }
 
 void getWord (char **line, char word[])
@@ -122,17 +128,197 @@ void getWord (char **line, char word[])
     
 }
 
-int is_request (char *word)
+int set_as_command(My_Line *myline, char *line, char err[])
 {
-    if (!(strcmp(word,".string ")))
+    
+}
+
+int set_as_request(My_Line *myline, char *line, char err[])
+{
+    int len,i,curr,sign;
+    len = data_check(line,myline->statement.request.kind);
+    
+    if (len == -1)
+    {
+        strcpy(err,"error: illegal request parameter");
         return 1;
-    if (!(strcmp(word,".data ")))
-        return 1;
-    if (!(strcmp(word,".extern ")))
-        return 1;
-    if (!(strcmp(word,".entry ")))
-        return 1;
+    }
+    
+    switch (myline->statement.request.kind) {
+        case DATA:
+        {
+            int nums[] = (int *)malloc(sizeof(int) * len);
+            for (i = 0; i < len; i++)
+            {
+                skip_spaces(line);
+                curr = 0;
+                if ((*line) == '-')
+                    sign = -1;
+                else if ((*line) == '+')
+                    sign = 1;
+                else
+                {
+                    curr = (*line) - '0';
+                    sign = 1;
+                }
+                
+                while (isdigit(*(++line)))
+                    curr = curr * 10 + (*line) - '0';
+                
+                skip_spaces(line);
+                line++;
+                nums[i] = curr * sign;
+            }
+            myline->statement.request.data.nums.arr = nums;
+            myline->statement.request.data.nums.len = len;
+        }
+            break;
+            
+        case STRING:
+        {
+            char *string = (char *)malloc(len+1);
+            skip_spaces(line);
+            line++;
+            strncpy(string,line,len);
+            string[len] = '\0';
+            myline->statement.request.data.str = string;
+        }
+            break;
+            
+        default:
+        {
+            char *symbol = (char *)malloc(len+1);
+            skip_spaces(line);
+            strncpy(symbol,line,len);
+            symbol[len] = '\0';
+            myline->statement.request.data.str = symbol;
+        }
+            break;
+    }
     return 0;
+}
+
+int data_check(char *param, int kind)
+{
+    int len = 0;
+    skip_spaces(param);
+    switch (kind) {
+        case DATA:
+        {
+            if ((*param) == '+' || (*param) == '-' || isdigit(*param))
+            {
+                param++;
+                len++;
+                while ((*param) != '\0' && (*param) != '\n') {
+                    if (is_delimiter(*param) && (*param) != ':')
+                    {
+                        skip_spaces(param);
+                        if ((*param) == '\0' || (*param) == '\n')
+                            return len;
+                        else
+                        {
+                            if ((*param) != ',')
+                                return -1;
+                            param++;
+                            skip_spaces(param);
+                            if ((*param) != '+' && (*param) != '-' && !isdigit(*param))
+                                return -1;
+                            len++;
+                        }
+                    }
+                    else
+                    {
+                        if ((*param) != '-' && (*param) != '+' && !isdigit(*param))
+                            return -1;
+                        if (((*param) == '-' || (*param) == '+') && !is_delimiter(*(param-1)))
+                            return -1;
+                        param++;
+                    }
+                }
+                return len;
+            }
+            else
+                return -1;
+        }
+            break;
+            
+        case STRING:
+        {
+            if ((*param) == '\"')
+            {
+                param++;
+                while ((*param) != '\"' && (*param) != '\0') {
+                    param++;
+                    len++
+                }
+                if ((*param) == '\"')
+                {
+                    param++;
+                    skip_spaces(param);
+                    if ((*param) == '\0' || (*param) == '\n')
+                        return len;
+                }
+            }
+            return -1;
+        }
+            break;
+            
+        default:
+        {
+            if (isalpha(*param))
+            {
+                param++;
+                while (isalnum(*param)) {
+                    param++;
+                    len++;
+                }
+                skip_spaces(param);
+                if ((*param) == '\0' || (*param) == '\n')
+                    return len;
+            }
+            return -1;
+        }
+            break;
+    }
+    return -1;
+}
+
+int is_request (char *word, char del)
+{
+    int i;
+    char req[MAX_REQ_LEN + 2]; /* +2 for del and '\0' */
+    
+    if (del)
+    {
+        for (i = 0; i < NUMBER_OF_REQUESTS; i++)
+        {
+            strcpy(req,opcodes[i]);
+            req[strlen(opcodes[i])] = del;
+            req[strlen(opcodes[i])+1] = '\0';
+            if (!(strcmp(word,req)))
+                return i;
+        }
+    }
+    else
+    {
+        for (i = 0; i < NUMBER_OF_REQUESTS; i++)
+        {
+            strcpy(req,opcodes[i]);
+            req[strlen(opcodes[i])] = ' ';
+            req[strlen(opcodes[i])+1] = '\0';
+            if (!(strcmp(word,req)))
+                return i;
+        }
+        for (i = 0; i < NUMBER_OF_REQUESTS; i++)
+        {
+            strcpy(req,opcodes[i]);
+            req[strlen(opcodes[i])] = '\t';
+            req[strlen(opcodes[i])+1] = '\0';
+            if (!(strcmp(word,req)))
+                return i;
+        }
+    }
+    return -1;
 }
 
 int is_label (char *word)
@@ -161,7 +347,7 @@ int is_label (char *word)
 
 int is_keyword (char *word, char del)
 {
-    return (is_register(word,del) || is_command(word,del));
+    return ((is_register(word,del) != -1) || (is_command(word,del) != -1));
 }
 
 int is_command (char *word, char del)
@@ -169,15 +355,37 @@ int is_command (char *word, char del)
     int i;
     char com[MAX_COM_LEN + 2]; /* +2 for del and '\0' */
     
-    for (i = 0; i < NUMBER_OF_COMMANDS; i++)
+    if (del)
     {
-        strcpy(com,opcodes[i]);
-        com[strlen(opcodes[i])] = del;
-        com[strlen(opcodes[i])+1] = '\0';
-        if (!(strcmp(word,com)))
-            return 1;
+        for (i = 0; i < NUMBER_OF_COMMANDS; i++)
+        {
+            strcpy(com,opcodes[i]);
+            com[strlen(opcodes[i])] = del;
+            com[strlen(opcodes[i])+1] = '\0';
+            if (!(strcmp(word,com)))
+                return i;
+        }
     }
-    return 0;
+    else
+    {
+        for (i = 0; i < NUMBER_OF_COMMANDS; i++)
+        {
+            strcpy(com,opcodes[i]);
+            com[strlen(opcodes[i])] = ' ';
+            com[strlen(opcodes[i])+1] = '\0';
+            if (!(strcmp(word,com)))
+                return i;
+        }
+        for (i = 0; i < NUMBER_OF_COMMANDS; i++)
+        {
+            strcpy(com,opcodes[i]);
+            com[strlen(opcodes[i])] = '\t';
+            com[strlen(opcodes[i])+1] = '\0';
+            if (!(strcmp(word,com)))
+                return i;
+        }
+    }
+    return -1;
 }
 
 int is_register (char *word, char del)
@@ -191,9 +399,9 @@ int is_register (char *word, char del)
         reg[strlen(registers[i])] = del;
         reg[strlen(registers[i])+1] = '\0';
         if (!(strcmp(word,reg)))
-            return 1;
+            return i;
     }
-    return 0;
+    return -1;
 }
 
 int is_delimiter (char ch)
