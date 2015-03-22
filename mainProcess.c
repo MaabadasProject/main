@@ -50,7 +50,7 @@ void processFile (FILE *asFile, char *fileName)
     My_File file;
     
     file = new_file(asFile);
-    symbols = symbols_list(asFile);
+    symbols = symbols_list(file);
     
     /* TOBE: continued... */
 	/* TODO: (so this can be fined in one find */
