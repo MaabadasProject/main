@@ -441,23 +441,5 @@ void free_file(My_File file)
 
 void free_line(My_Line *line)
 {
-	/* wait 'till we write the new_line func */
 	
-	/*My_Line ptr;
-	
-	while (line != NULL) {
-		free(line->label);
-		switch(line->data) {
-			case Command:
-				free(line->data.command.p1);
-				free(line->data.command.p2);
-				break;
-			case Request:
-				// free(line->data.request.data) // data unimplemented; might need a free in the future
-				break;
-		}
-		ptr = line->next;
-		free(line);
-		line = ptr;
-	}*/
 }

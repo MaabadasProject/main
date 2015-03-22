@@ -1,6 +1,13 @@
 
 #include "Symbols.h"
 
+SymbolList symbols_list(My_File file)
+{
+    SymbolList list;
+    
+    &list = new_symbolList();
+}
+
 /* this will free the symbols list */
 void free_list (SymbolList list)
 {
