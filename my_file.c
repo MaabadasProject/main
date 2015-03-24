@@ -447,7 +447,7 @@ void free_line(My_Line *line)
 
 /* writing files */
 
-instr_h_b *get_header(Line *line)
+instr_h_b *get_header(MY_Line *line)
 {
 	instr_h_b *h;
 	int amount_of_parameters = 0;
@@ -477,12 +477,33 @@ instr_h_b *get_header(Line *line)
 	return istr_h_b;
 }
 
-void write_header(FILE *f, Line *line)
+void write_line(FILE *f, MY_Line *line)
 {
 	instr_h_b *h;
-	h = get_header(line);
-	fwrite(h, 2 /* maybe? */, 1, f);
-	free(instr_h_b);
+	
+	for( ; line ; line = line->next)
+	{
+		h = get_header(line);
+		fwrite(h, 2 /* maybe? */, 1, f);
+		free(instr_h_b);
+	}
 }
 
+/* this functions needs better care */
+void write_file(FILE *f, MY_FILE *my_f)
+{
+	wrie_line(f, my_f->firstLine)
+}
+
+void handle_file(char *filename, MY_FILE *my_f)
+{
+	FILE *f;
+	f = fopen(filename, "w");
+	if (!f)
+	{
+		fprintf(stderr, "the file %s cannot be written to", filename);
+		exit(1);
+	}
+	write_file(f, my_f);
+}
 	
