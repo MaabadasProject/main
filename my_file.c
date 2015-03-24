@@ -441,7 +441,39 @@ void free_file(My_File file)
 
 void free_line(My_Line *line)
 {
-	
+	My_Line ptr;
+	for(ptr = line->next; line; line = ptr, ptr = ptr->next)
+	{
+		free(line->label);
+		switch(line->kind)
+		{
+			case Command:
+				free_parameter(line->statement.command.p1);
+				free_parameter(line->statement.command.p2);
+				break;
+			case Request:
+				switch(line->statement.request.kind)
+				{
+					case STRING:
+					case ENTRY:
+					case EXTERN:
+						free(line->statement.request.data.str);
+						break;
+					case DATA:
+						free(line->statement.request.data.nums.arr);
+				}
+				break;
+			case ERROR:
+				free(line->statement.error);
+		}
+		free(line);
+	}
+}
+
+void free_parameter(parameter *p)
+{
+	free(p->value);
+	free(p);
 }
 
 
