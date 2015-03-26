@@ -130,7 +130,63 @@ void getWord (char **line, char word[])
 
 int set_as_command(My_Line *myline, char *line, char err[])
 {
-    
+	char *label;
+	char *code;
+	char *p1;
+	char *p2;
+	
+	parameter *pp1;
+	parameter *pp2;
+	
+	int opcode;
+	
+	int i;
+	
+	label = (char *)malloc(MAX_WORD_LENGTH);
+	code = (char *)malloc(MAX_WORD_LENGTH);
+	p1 = (char *)malloc(MAX_WORD_LENGTH);
+	p2 = (char *)malloc(MAX_WORD_LENGTH);
+	
+	*label = '\0';
+	*code = '\0';
+	*p1 = '\0';
+	*p2 = '\0';
+
+	myline->kind = Command;
+    if(is_label(line))
+	{
+		getWord(&line, label);
+	}
+	getWord(&line, code);
+	skip_spaces(line);
+	if(line != NULL && is_delimiter(line[0]))
+	{
+		line++;
+		getWord(&line, p1);
+		skip_spaces(line);
+		if(line != NULL && is_delimiter(line[0]))
+		{
+			line++;
+			getWord(&line, p2);
+		}
+	}
+	
+	for(i = 0;i < NUMBER_OF_COMMANDS; i++)
+	{
+		if(!strcmp(opcodes[i], code))
+		{
+			opcode = i;
+			break;
+		}
+	}
+		
+	/* TODO: set up the parameters */
+	
+	myline->statement.command.opcode = opcode;
+	myline->statement.command.p1 = pp1;
+	myline->statement.command.p1 = pp2;
+	
+	return 0;
 }
 
 int set_as_request(My_Line *myline, char *line, char err[])

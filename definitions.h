@@ -23,6 +23,7 @@
 #define NUMBER_OF_COMMANDS 16
 #define NUMBER_OF_REGISTERS 8
 #define NUMBER_OF_REQUESTS 4
+#define NUMBER_OF_ADDRESSING_METHODS 4
 #define DELIMITERS " \t,:"
 enum {FIRST, SECOND, THIRD} /* group number */
 enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER} /* Addressing methods */
@@ -46,6 +47,28 @@ char *opcodes[NUMBER_OF_COMMANDS] =
     , "rts"
     , "stop"};
 #endif
+
+#ifndef legal_adressing_methods
+int legal_adressing_methods[NUMBER_OF_COMMANDS][NUMBER_OF_ADDRESSING_METHODS*2] = 
+	/* source  ||  destination */
+	{1,1,1,1,		0,1,0,1,
+	 1,1,1,1,		1,1,1,1,
+	 1,1,1,1,		0,1,0,1,
+	 1,1,1,1,		0,1,0,1,
+	 0,0,0,0,		0,1,0,1,
+	 0,0,0,0,		0,1,0,1,
+	 0,1,0,0,		0,1,0,1,
+	 0,0,0,0,		0,1,0,1,
+	 0,0,0,0,		0,1,0,1,
+	 0,0,0,0,		0,1,1,1,
+	 0,0,0,0,		0,1,1,1,
+	 0,0,0,0,		0,1,1,1,
+	 0,0,0,0,		1,1,1,1,
+	 0,0,0,0,		0,1,0,0,
+	 0,0,0,0,		0,0,0,0,
+	 0,0,0,0,		0,0,0,0}
+#endif
+	 
 
 #ifndef opcodes
 char *requests[NUMBER_OF_REQUESTS] =
