@@ -130,7 +130,63 @@ void getWord (char **line, char word[])
 
 int set_as_command(My_Line *myline, char *line, char err[])
 {
-    
+	char *label;
+	char *code;
+	char *p1;
+	char *p2;
+	
+	parameter *pp1;
+	parameter *pp2;
+	
+	int opcode;
+	
+	int i;
+	
+	label = (char *)malloc(MAX_WORD_LENGTH);
+	code = (char *)malloc(MAX_WORD_LENGTH);
+	p1 = (char *)malloc(MAX_WORD_LENGTH);
+	p2 = (char *)malloc(MAX_WORD_LENGTH);
+	
+	*label = '\0';
+	*code = '\0';
+	*p1 = '\0';
+	*p2 = '\0';
+
+	myline->kind = Command;
+    if(is_label(line))
+	{
+		getWord(&line, label);
+	}
+	getWord(&line, code);
+	skip_spaces(line);
+	if(line != NULL && is_delimiter(line[0]))
+	{
+		line++;
+		getWord(&line, p1);
+		skip_spaces(line);
+		if(line != NULL && is_delimiter(line[0]))
+		{
+			line++;
+			getWord(&line, p2);
+		}
+	}
+	
+	for(i = 0;i < NUMBER_OF_COMMANDS; i++)
+	{
+		if(!strcmp(opcodes[i], code))
+		{
+			opcode = i;
+			break;
+		}
+	}
+		
+	/* TODO: set up the parameters */
+	
+	myline->statement.command.opcode = opcode;
+	myline->statement.command.p1 = pp1;
+	myline->statement.command.p1 = pp2;
+	
+	return 0;
 }
 
 int set_as_request(My_Line *myline, char *line, char err[])
@@ -441,5 +497,101 @@ void free_file(My_File file)
 
 void free_line(My_Line *line)
 {
-	
+	My_Line ptr;
+	for(ptr = line->next; line; line = ptr, ptr = ptr->next)
+	{
+		free(line->label);
+		switch(line->kind)
+		{
+			case Command:
+				free_parameter(line->statement.command.p1);
+				free_parameter(line->statement.command.p2);
+				break;
+			case Request:
+				switch(line->statement.request.kind)
+				{
+					case STRING:
+					case ENTRY:
+					case EXTERN:
+						free(line->statement.request.data.str);
+						break;
+					case DATA:
+						free(line->statement.request.data.nums.arr);
+				}
+				break;
+			case ERROR:
+				free(line->statement.error);
+		}
+		free(line);
+	}
 }
+
+void free_parameter(parameter *p)
+{
+	free(p->value);
+	free(p);
+}
+
+
+/* writing files */
+
+instr_h_b *get_header(MY_Line *line)
+{
+	instr_h_b *h;
+	int amount_of_parameters = 0;
+	
+	h = (*instr_h_b) malloc(sizeof(instr_h_b);
+	switch(line->kind)
+	{
+		case Request:
+		case Error:
+			h->mode=0; break;
+		case Command:
+			/* first figure out the A/R/E */
+			if(line->statement.command->p1)
+			{
+				h.target = line->statement.command->p1->kind;
+				amount_of_parameters++;
+			}
+			if(line->statement.command->p2)
+			{
+				h.source = line->statement.command->p2->kind;
+				amount_of_parameters++;
+			}
+			h.opcode = line->statement.command.opcode;
+			h.group = amount_of_parameters;
+	}
+	
+	return istr_h_b;
+}
+
+void write_line(FILE *f, MY_Line *line)
+{
+	instr_h_b *h;
+	
+	for( ; line ; line = line->next)
+	{
+		h = get_header(line);
+		fwrite(h, 2 /* maybe? */, 1, f);
+		free(instr_h_b);
+	}
+}
+
+/* this functions needs better care */
+void write_file(FILE *f, MY_FILE *my_f)
+{
+	wrie_line(f, my_f->firstLine)
+}
+
+void handle_file(char *filename, MY_FILE *my_f)
+{
+	FILE *f;
+	f = fopen(filename, "w");
+	if (!f)
+	{
+		fprintf(stderr, "the file %s cannot be written to", filename);
+		exit(1);
+	}
+	write_file(f, my_f);
+}
+	
