@@ -5,39 +5,23 @@ int main(int argc, char *argv[])
 {
     int i;
     FILE *currAssemblyFile;
-    char *fileName = NULL;
+    
     
     for (i = 1; i < argc; i++)
     {
-        if (assemblyFile(argv[i], &fileName)) // what about other kinds of files
+        char fileName[strlen(argv[i]) + 4], *end;
+        strcpy(fileName,argv[i]);
+        end = fileName + strlen(argv[i]);
+        strcpy(end,".as");
+        if (currAssemblyFile = fopen(argv[i], READ)) // what about other kinds of files
         {
-            if (currAssemblyFile = fopen(argv[i], READ))
-            {
-                processFile(currAssemblyFile, fileName);
-                fclose(currAssemblyFile);
-            }
-            free(fileName);
+            processFile(currAssemblyFile, argv[i]);
+            fclose(currAssemblyFile);
         }
-    }
-    return 0;
-}
-
-int assemblyFile(char *file, char **fileName)
-{
-    int length = 1;
-    char *curr;
-    curr = file;
-    curr++;
-    while (((*curr)!='\0')&&((*curr)!='.'))
-    {
-        length++;
-        curr++;
-    }
-    if (!(strcmp(curr, ASSEMBLY)))
-    {
-        *fileName = (char *)malloc(length+1);
-        strncpy(*fileName, file, length);
-        return 1; /* why? 1 indicates error. 0 indicates success */
+        else
+        {
+            printf("error: the file %s coud not be found\n",fileName);
+        }
     }
     return 0;
 }
@@ -46,8 +30,8 @@ int assemblyFile(char *file, char **fileName)
 /* this will get an assembly file (the first argument) ready for reading, and the files name. */
 void processFile (FILE *asFile, char *fileName)
 {
-    SymbolList symbols;
-    My_File file;
+    SymbolList *symbols;
+    My_File *file;
     
     file = new_file(asFile);
     symbols = symbols_list(file);
