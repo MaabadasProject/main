@@ -48,6 +48,7 @@ long get_extra_words(parameter *p)
 			break;
 		case DIRECT:
 			/* TODO: search the symbol table */
+			break;
 		case DISTANCE:
 			/* TODO */
 			break;
