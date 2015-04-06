@@ -1,10 +1,9 @@
 
 #include "my_file.h"
-
 #define skip_spaces(line)\
 {\
-    while(*(line) == ' ' || *(line) == '\t')\
-    	(line)++;\
+while(*(line) == ' ' || *(line) == '\t')\
+(line)++;\
 }
 
 My_File * new_file (FILE *asFile)
@@ -16,43 +15,43 @@ My_File * new_file (FILE *asFile)
     
     file = (My_File *)malloc(sizeof(My_File));
     file->firstLine = NULL;
-    file->makeOb = YES;
-    file->makeExt = NO;
-    file->makeEnt = NO;
+    file->makeOb = MAKE;
+    file->makeExt = NOT;
+    file->makeEnt = NOT;
     
-	
+    
     prev = NULL;
-	while (!feof(asFile)) {
-		curr = new_line(fgets(str_line, MAX_LINE_LENGTH, asFile));
-		if (curr->kind == Request)
-		{
-			if (curr->statement.request.kind == ENTRY)
-				file->makeEnt = YES;
-			else if (curr->statement.request.kind == EXTERN)
-				file->makeExt = YES;
-		}
-		else if (curr->kind == Error)
-		{
-			file->makeOb = NO;
-		}
-		if (prev == NULL)
-		{
-			file->firstLine = curr;
-			prev = curr;
-		}
-		else
-		{
-			prev->next = curr;
-			prev = prev->next;
-		}
-	}
+    while (!feof(asFile)) {
+        curr = new_line(fgets(str_line, MAX_LINE_LENGTH, asFile));
+        if (curr->kind == Request)
+        {
+            if (curr->statement.request.kind == ENTRY)
+                file->makeEnt = MAKE;
+            else if (curr->statement.request.kind == EXTERN)
+                file->makeExt = MAKE;
+        }
+        else if (curr->kind == Error)
+        {
+            file->makeOb = NOT;
+        }
+        if (prev == NULL)
+        {
+            file->firstLine = curr;
+            prev = curr;
+        }
+        else
+        {
+            prev->next = curr;
+            prev = prev->next;
+        }
+    }
     
     return file;
 }
 
 My_Line * new_line (char line[])
 {
-    char curr[MAX_WORD_LENGTH], err[MAX_ERROR_LENGTH];
+    char curr[MAX_WORD_LENGTH], *err;
     My_Line *myline;
     int foundError, stat;
     
@@ -63,21 +62,28 @@ My_Line * new_line (char line[])
     
     if (is_label(curr))
     {
-        strcpy_label(myline->label, curr);
+        strncpy(myline->label, curr, strlen(curr)-1);
         getWord(&line, curr);
     }
     else
     {
         myline->label[0] = '\0';
+        if (is_keyword(curr, ':'))
+        {
+            strcpy(err, "label can't be a keyword");
+            myline->kind = Error;
+            myline->statement.error = err;
+            return myline;
+        }
     }
     
-    if ((stat = is_command(curr,NULL)) != -1)
+    if ((stat = is_command(curr,'\0')) != -1)
     {
         myline->kind = Command;
         myline->statement.command.opcode = stat;
         foundError = set_as_command(myline,line,err);
     }
-    else if ((stat = is_request(curr,NULL)) != -1)
+    else if ((stat = is_request(curr,'\0')) != -1)
     {
         myline->kind = Request;
         myline->statement.request.kind = stat;
@@ -93,12 +99,13 @@ My_Line * new_line (char line[])
     }
     else
     {
-        strcpy(err, "error: couldn't recognize command or request");
+        strcpy(err, "couldn't recognize first word");
         foundError = 1;
     }
     
     if (foundError)/* if contains an error */
     {
+        myline->label[0] = '\0';
         myline->kind = Error;
         myline->statement.error = err;
     }
@@ -119,76 +126,167 @@ void getWord (char **line, char word[])
         i++;
     }while (!is_delimiter(*(*line - 1)) && i < MAX_WORD_LENGTH - 1);
     
-    if (!is_delimiter(**line))
+    if (!is_delimiter(*(*line-1)))
     {
         word[0] = '\0';
     }
     else
     {
-        word[i] = **line;
+        word[i] = '\0';
     }
     
 }
 
 int set_as_command(My_Line *myline, char *line, char err[])
 {
-	char *label;
-	char *code;
-	char *p1;
-	char *p2;
-	
-	parameter *pp1;
-	parameter *pp2;
-	
-	int opcode;
-	
-	int i;
-	
-	label = (char *)malloc(MAX_WORD_LENGTH);
-	code = (char *)malloc(MAX_WORD_LENGTH);
-	p1 = (char *)malloc(MAX_WORD_LENGTH);
-	p2 = (char *)malloc(MAX_WORD_LENGTH);
-	
-	*label = '\0';
-	*code = '\0';
-	*p1 = '\0';
-	*p2 = '\0';
-
-	myline->kind = Command;
-    if(is_label(line))
-	{
-		getWord(&line, label);
-	}
-	getWord(&line, code);
-	skip_spaces(line);
-	if(line != NULL && is_delimiter(line[0]))
-	{
-		line++;
-		getWord(&line, p1);
-		skip_spaces(line);
-		if(line != NULL && is_delimiter(line[0]))
-		{
-			line++;
-			getWord(&line, p2);
-		}
-	}
-	
-	for(i = 0;i < NUMBER_OF_COMMANDS; i++)
-	{
-		if(!strcmp(opcodes[i], code))
-		{
-			opcode = i;
-			break;
-		}
-	}
-		
-	/* TODO: set up the parameters */
-	
-	myline->statement.command.opcode = opcode;
-	myline->statement.command.p1 = pp1;
-	myline->statement.command.p1 = pp2;
-	
-	return 0;
+    parameter *p1,*p2;
+    int i,len;
+    
+    skip_spaces(line);
+    p1 = (parameter *)malloc(sizeof(parameter));
+    p2 = (parameter *)malloc(sizeof(parameter));
+    
+    p1->kind = addressingMethod(line);
+    len = param_length(line,p1->kind);
+    p1->value = (char *)malloc(len+1);
+    p1->value[len] = '\0';
+    
+    switch (p1->kind) {
+        case IMMEDIATE:
+            line++;
+        case REGISTER:
+        case DIRECT:
+            strncpy(p1->value, line, len);
+            line += len;
+            break;
+        case DISTANCE:
+            line++;
+            skip_spaces(line);
+            line++;
+            skip_spaces(line);
+            i = 0;
+            while ((*line) != ' ' && (*line) != '\t' && (*line) != ',')
+            {
+                p1->value[i] = (*line);
+                i++;
+                line++;
+            }
+            skip_spaces(line);
+            line++;
+            skip_spaces(line);
+            p1->value[i] = ',';
+            i++;
+            while ((*line) != ' ' && (*line) != '\t' && (*line) != ')')
+            {
+                p1->value[i] = (*line);
+                line++;
+            }
+            p1->value[len] = '\0';
+            skip_spaces(line);
+            line++;
+            break;
+        case NONE:
+            p1->value = NULL;
+        case ERROR:
+            free_parameter(p1);
+            free(p2);
+            strcpy(err, "syntax problem with first parameter");
+            return 1;
+            break;
+    }
+    
+    skip_spaces(line);
+    if ((*line) != '\n' && (*line) != '\0')
+    {
+        if ((*line) != ',')
+        {
+            free_parameter(p1);
+            free(p2);
+            strcpy(err, "problem with command's parameter");
+            return 1;
+        }
+        line++;
+        skip_spaces(line);
+        p2->kind = addressingMethod(line);
+        len = param_length(line,p2->kind);
+        p2->value = (char *)malloc(len+1);
+        p2->value[len] = '\0';
+        
+        switch (p2->kind) {
+            case IMMEDIATE:
+                line++;
+            case REGISTER:
+            case DIRECT:
+                strncpy(p2->value, line, len);
+                line += len;
+                break;
+            case DISTANCE:
+                line++;
+                skip_spaces(line);
+                line++;
+                skip_spaces(line);
+                i = 0;
+                while ((*line) != ' ' && (*line) != '\t' && (*line) != ',')
+                {
+                    p2->value[i] = (*line);
+                    i++;
+                    line++;
+                }
+                skip_spaces(line);
+                line++;
+                skip_spaces(line);
+                p2->value[i] = ',';
+                i++;
+                while ((*line) != ' ' && (*line) != '\t' && (*line) != ')')
+                {
+                    p2->value[i] = (*line);
+                    line++;
+                }
+                p2->value[len] = '\0';
+                skip_spaces(line);
+                line++;
+                break;
+            case NONE:
+                p2->value = NULL;
+            case ERROR:
+                free_parameter(p1);
+                free_parameter(p2);
+                strcpy(err, "syntax problem with second parameter");
+                return 1;
+                break;
+        }
+        skip_spaces(line);
+        if ((*line) != '\n' && (*line) != '\0')
+        {
+            free_parameter(p1);
+            free_parameter(p2);
+            strcpy(err, "too many parameters");
+            return 1;
+        }
+    }
+    else
+    {
+        parameter *tmp;
+        p2->kind = NONE;
+        p2->value = NULL;
+        tmp = p2;
+        p2 = p1;
+        p1 = tmp;
+    }
+    
+    if (fit(myline->statement.command.opcode,p1,FIRST) && fit(myline->statement.command.opcode,p2,SECOND))
+    {
+        myline->statement.command.p1 = p1;
+        myline->statement.command.p2 = p2;
+        return 0;
+    }
+    else
+    {
+        free_parameter(p1);
+        free_parameter(p2);
+        strcpy(err, "parameters dosn't fit command");
+        return 1;
+    }
 }
 
 int set_as_request(My_Line *myline, char *line, char err[])
@@ -198,14 +296,14 @@ int set_as_request(My_Line *myline, char *line, char err[])
     
     if (len == -1)
     {
-        strcpy(err,"error: illegal request parameter");
+        strcpy(err,"illegal request parameter");
         return 1;
     }
     
     switch (myline->statement.request.kind) {
         case DATA:
         {
-            int nums[] = (int *)malloc(sizeof(int) * len);
+            int *nums = (int *)malloc(sizeof(int) * len);
             for (i = 0; i < len; i++)
             {
                 skip_spaces(line);
@@ -307,7 +405,7 @@ int data_check(char *param, int kind)
                 param++;
                 while ((*param) != '\"' && (*param) != '\0') {
                     param++;
-                    len++
+                    len++;
                 }
                 if ((*param) == '\"')
                 {
@@ -325,7 +423,6 @@ int data_check(char *param, int kind)
         {
             if (isalpha(*param))
             {
-                param++;
                 while (isalnum(*param)) {
                     param++;
                     len++;
@@ -341,6 +438,12 @@ int data_check(char *param, int kind)
     return -1;
 }
 
+int is_empty (char *line)
+{
+    skip_spaces(line);
+    return ((*line) == ';' || (*line) == '\n' || (*line) == '\0');
+}
+
 int is_request (char *word, char del)
 {
     int i;
@@ -348,11 +451,12 @@ int is_request (char *word, char del)
     
     if (del)
     {
+        
         for (i = 0; i < NUMBER_OF_REQUESTS; i++)
         {
-            strcpy(req,opcodes[i]);
-            req[strlen(opcodes[i])] = del;
-            req[strlen(opcodes[i])+1] = '\0';
+            strcpy(req,requests[i]);
+            req[strlen(requests[i])] = del;
+            req[strlen(requests[i])+1] = '\0';
             if (!(strcmp(word,req)))
                 return i;
         }
@@ -361,17 +465,17 @@ int is_request (char *word, char del)
     {
         for (i = 0; i < NUMBER_OF_REQUESTS; i++)
         {
-            strcpy(req,opcodes[i]);
-            req[strlen(opcodes[i])] = ' ';
-            req[strlen(opcodes[i])+1] = '\0';
+            strcpy(req,requests[i]);
+            req[strlen(requests[i])] = ' ';
+            req[strlen(requests[i])+1] = '\0';
             if (!(strcmp(word,req)))
                 return i;
         }
         for (i = 0; i < NUMBER_OF_REQUESTS; i++)
         {
-            strcpy(req,opcodes[i]);
-            req[strlen(opcodes[i])] = '\t';
-            req[strlen(opcodes[i])+1] = '\0';
+            strcpy(req,requests[i]);
+            req[strlen(requests[i])] = '\t';
+            req[strlen(requests[i])+1] = '\0';
             if (!(strcmp(word,req)))
                 return i;
         }
@@ -415,6 +519,7 @@ int is_command (char *word, char del)
     
     if (del)
     {
+        
         for (i = 0; i < NUMBER_OF_COMMANDS; i++)
         {
             strcpy(com,opcodes[i]);
@@ -479,57 +584,218 @@ int is_delimiter (char ch)
     return 0;
 }
 
+int addressingMethod (char *line)
+{
+    if ((*line) == '#')
+    {
+        line++;
+        if ((*line) == '-' || (*line) == '+' || isdigit(*line))
+        {
+            line++;
+            while (isdigit(*line))
+                line++;
+            skip_spaces(line);
+            if ((*line) == '\n' || (*line) == '\0' || (*line) == ',')
+                return IMMEDIATE;
+        }
+        return ERROR;
+    }
+    else if ((*line) == '~')
+    {
+        line++;
+        if ((*line) == '(')
+        {
+            line++;
+            skip_spaces(line);
+            while ((*line) != ' ' && (*line) != '\t' && (*line) != ',')
+            {
+                if (!isalnum(*line))
+                {
+                    return ERROR;
+                }
+                line++;
+            }
+            skip_spaces(line);
+            if ((*line) == ',')
+            {
+                line++;
+                skip_spaces(line);
+                while ((*line) != ' ' && (*line) != '\t' && (*line) != ')')
+                {
+                    if (!isalnum(*line))
+                    {
+                        return ERROR;
+                    }
+                    line++;
+                }
+                skip_spaces(line);
+                if ((*line) == ')')
+                {
+                    line++;
+                    skip_spaces(line);
+                    if ((*line) == ',' || (*line) == '\n' || (*line) == '\0')
+                        return DISTANCE;
+                }
+            }
+        }
+    }
+    else if ((*line) == 'r')
+    {
+        if ((*(line+1)) >= '0' && (*(line+1)) <= '7' && (*(line+2)) != ':' && is_delimiter(*(line+2)))
+        {
+            line += 2;
+            skip_spaces(line);
+            if ((*line) == ',' || (*line) == '\n' || (*line) == '\0')
+                return REGISTER;
+        }
+    }
+    if (isalpha(*line))
+    {
+        line++;
+        while ((*line) && (*line) != '\n' && (*line) != ' ' && (*line) != '\t' && (*line) != ',')
+        {
+            if (!isalnum(*line))
+            {
+                return ERROR;
+            }
+            line++;
+        }
+        skip_spaces(line);
+        if ((*line) == '\0' || (*line) == '\n' || (*line) == ',')
+        {
+            return DIRECT;
+        }
+    }
+    else if ((*line) == '\n' || (*line) == '\0')
+    {
+        return NONE;
+    }
+    return ERROR;
+}
+
+int param_length (char *param, int kind)
+{
+    int count;
+    count = 0;
+    skip_spaces(param);
+    switch (kind) {
+        case IMMEDIATE:
+            param += 2;
+            count = 1;
+            while (isdigit(*param))
+            {
+                count++;
+                param++;
+            }
+            break;
+        case DISTANCE:
+            param += 2;
+            skip_spaces(param);
+            param++;
+            count++;
+            while (isalnum(*param))
+            {
+                count++;
+                param++;
+            }
+            skip_spaces(param);
+            param++;
+            skip_spaces(param);
+            count += 2;
+            param++;
+            while (isalnum(*param))
+            {
+                count++;
+                param++;
+            }
+            break;
+        case DIRECT:
+            param++;
+            count = 1;
+            while (isalnum(*param))
+            {
+                count++;
+                param++;
+            }
+            break;
+        case REGISTER:
+            return MAX_REG_LEN;
+            break;
+    }
+    
+    return count;
+}
+
+int fit (int command, parameter *param, int numberOfParameter)
+{
+    if (param->kind == NONE)
+    {
+        return (sum(legal_adressing_methods[command][numberOfParameter],NUMBER_OF_ADDRESSING_METHODS) == 0);
+    }
+    else
+    {
+        return legal_adressing_methods[command][numberOfParameter][param->kind];
+    }
+}
+
+int sum (int arr[], int len)
+{
+    int i,count;
+    count = 0;
+    for (i = 0; i < len; i++)
+        count += arr[i];
+    return count;
+}
+
 void free_file(My_File file)
 {
     if (file.firstLine)
     {
         My_Line *curr, *post;
         curr = file.firstLine;
-        post = curr.next;
+        post = curr->next;
         while (post)
         {
             free_line(curr);
             curr = post;
-            post = post.next;
+            post = post->next;
         }
         free_line(curr);
     }
-    free(file);
+    free(&file);
 }
 
 void free_line(My_Line *line)
 {
-	My_Line ptr;
-	for(ptr = line->next; line; line = ptr, ptr = ptr->next)
-	{
-		free(line->label);
-		switch(line->kind)
-		{
-			case Command:
-				free_parameter(line->statement.command.p1);
-				free_parameter(line->statement.command.p2);
-				break;
-			case Request:
-				switch(line->statement.request.kind)
-				{
-					case STRING:
-					case ENTRY:
-					case EXTERN:
-						free(line->statement.request.data.str);
-						break;
-					case DATA:
-						free(line->statement.request.data.nums.arr);
-				}
-				break;
-			case ERROR:
-				free(line->statement.error);
-		}
-		free(line);
-	}
+    free(line->label);
+    switch(line->kind)
+    {
+        case Command:
+            free_parameter(line->statement.command.p1);
+            free_parameter(line->statement.command.p2);
+            break;
+        case Request:
+            switch(line->statement.request.kind)
+        {
+            case STRING:
+            case ENTRY:
+            case EXTERN:
+                free(line->statement.request.data.str);
+                break;
+            case DATA:
+                free(line->statement.request.data.nums.arr);
+                break;
+        }
+            break;
+        case Error:
+            free(line->statement.error);
+            break;
+    }
+    free(line);
 }
 
 void free_parameter(parameter *p)
 {
-	free(p->value);
-	free(p);
+    free(p->value);
+    free(p);
 }
