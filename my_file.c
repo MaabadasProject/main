@@ -202,8 +202,10 @@ parameter make_parameter(char *word)
 	{
 		case '~':
 			p.kind = DISTANCE;
+			break;
 		case '#':
-			p.kind = DIRECT;
+			p.kind = IMMEDIATE;
+			break;
 		default:
 			/* TODO */
 	}
@@ -549,6 +551,8 @@ void free_line(My_Line *line)
 
 void free_parameter(parameter *p)
 {
-	free(p->value);
-	free(p);
+	/* free(p->value); */
+	/* no, actually. because value is basically a pointer into the middle */
+	/* of another string, do not free. */
+ 	free(p);
 }
