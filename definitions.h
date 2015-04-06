@@ -4,6 +4,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifndef ASSEMBLY
+
 #define ASSEMBLY ".as"
 #define OBJECT ".ob"
 #define EXTERNALS ".ext"
@@ -25,82 +27,32 @@
 #define NUMBER_OF_REQUESTS 4
 #define NUMBER_OF_ADDRESSING_METHODS 4
 #define FIRST_LINE 100
-#define DELIMITERS " \t,:"
-enum {FIRST, SECOND, THIRD} /* group number */
-enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER} /* Addressing methods */
+#define DELIMITERS " \t,:\n"
+enum {FIRST, SECOND, THIRD}; /* group number */
+enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER, NONE, ERROR}; /* Addressing methods */
+enum Build {MAKE,NOT}; /* make output file or not */
 
-#ifndef opcodes
-char *opcodes[NUMBER_OF_COMMANDS] =
-    { "mov"
-    , "cmp"
-    , "add"
-    , "sub"
-    , "not"
-    , "clr"
-    , "lea"
-    , "inc"
-    , "dec"
-    , "jmp"
-    , "bne"
-    , "red"
-    , "prn"
-    , "jsr"
-    , "rts"
-    , "stop"};
-#endif
+extern char *opcodes[];
+extern int legal_adressing_methods[NUMBER_OF_COMMANDS][2][NUMBER_OF_ADDRESSING_METHODS];
+extern char *requests[];
+extern char *registers[];
 
-#ifndef legal_adressing_methods
-int legal_adressing_methods[NUMBER_OF_COMMANDS][2][NUMBER_OF_ADDRESSING_METHODS] =
-	/* source  ||  destination */
-    {{{1,1,1,1},	{0,1,0,1}},
-    {{1,1,1,1},		{1,1,1,1}},
-    {{1,1,1,1},		{0,1,0,1}},
-    {{1,1,1,1},		{0,1,0,1}},
-    {{0,0,0,0},		{0,1,0,1}},
-    {{0,0,0,0},		{0,1,0,1}},
-    {{0,1,0,0},		{0,1,0,1}},
-    {{0,0,0,0},		{0,1,0,1}},
-    {{0,0,0,0},		{0,1,0,1}},
-    {{0,0,0,0},		{0,1,1,1}},
-    {{0,0,0,0},		{0,1,1,1}},
-    {{0,0,0,0},		{0,1,1,1}},
-    {{0,0,0,0},		{1,1,1,1}},
-    {{0,0,0,0},		{0,1,0,0}},
-    {{0,0,0,0},		{0,0,0,0}},
-    {{0,0,0,0},		{0,0,0,0}}}
-#endif
-	 
-
-#ifndef opcodes
-char *requests[NUMBER_OF_REQUESTS] =
-    { ".data"
-    , ".string"
-    , ".entry"
-    , ".extern"};
-#endif
-
-#ifndef registers
-char *registers[NUMBER_OF_REGISTERS] =
-    { "r0"
-    , "r1"
-    , "r2"
-    , "r3"
-    , "r4"
-    , "r5"
-    , "r6"
-    , "r7"};
-#endif
+typedef struct
+{
+    enum Addressing kind;
+    char *value;
+}parameter;
 
 typedef struct line
 {
     char label[MAX_SYMBOL_NAME];
-	enum {Command, Request, Error} kind; /* the kind of the assembly statement */
-	union /* the data of this assembly statement */
+    enum {Command, Request, Error} kind; /* the kind of the assembly statement */
+    union /* the data of this assembly statement */
     {
-		struct /* a request */
+        struct /* a request */
         {
-			enum {DATA, STRING, ENTRY, EXTERN} kind;
-			union
+            enum {DATA, STRING, ENTRY, EXTERN} kind;
+            union
             {
                 struct
                 {
@@ -109,29 +61,23 @@ typedef struct line
                 }nums;
                 char *str; /* for .string, .entry and .extern */
             } data; /* the data of the command; unimplemented */
-		} request;
-		struct /* a command */
+        } request;
+        struct /* a command */
         {
-			int opcode; /* the location in the opcodes table */
-			parameter *p1, *p2; /* the two parameters */
-		} command;
-        char *error; /* should be changed to an int to store error codes */
-	} statement;
+            int opcode; /* the location in the opcodes table */
+            parameter *p1, *p2; /* the two parameters */
+        } command;
+        char *error;
+    } statement;
     struct line *next;
 } My_Line;
 
 typedef struct
 {
-    enum Addressing kind;
-    char *value;
-}parameter;
-
-typedef struct
-{
     My_Line *firstLine;
-    enum {NO, YES} makeOb;  /* if syntax error was found */
-    enum {NO, YES} makeExt; /* if .extern was found */
-    enum {NO, YES} maxeEnt; /* if .entry was found */
+    enum Build makeOb;  /* if syntax error was found */
+    enum Build makeExt; /* if .extern was found */
+    enum Build makeEnt; /* if .entry was found */
 } My_File;
 
 typedef struct {
@@ -153,3 +99,5 @@ typedef struct
 {
     Symbol *head;
 } SymbolList;
+
+#endif
