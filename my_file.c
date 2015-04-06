@@ -181,14 +181,33 @@ int set_as_command(My_Line *myline, char *line, char err[])
 			break;
 		}
 	}
-		
-	/* TODO: set up the parameters */
+	
+	pp1 = make_parameter(p1);
+	pp2 = make_parameter(p2);
 	
 	myline->statement.command.opcode = opcode;
 	myline->statement.command.p1 = pp1;
 	myline->statement.command.p1 = pp2;
 	
 	return 0;
+}
+
+parameter make_parameter(char *word)
+{
+	parameter *p;
+	p = malloc(sizeof(parameter));
+	p.value = word;
+	
+	switch(word[0])
+	{
+		case '~':
+			p.kind = DISTANCE;
+		case '#':
+			p.kind = DIRECT;
+		default:
+			/* TODO */
+	}
+	return p;
 }
 
 int set_as_request(My_Line *myline, char *line, char err[])
