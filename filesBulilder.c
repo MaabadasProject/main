@@ -34,6 +34,36 @@ instr_h_b *get_header(MY_Line *line)
     return istr_h_b;
 }
 
+/* returns the extra word that the addressing method needs. */
+long get_extra_words(parameter *p)
+{
+	char *s = p->value;
+	int n;
+	
+	switch(p->kind)
+	{
+		case IMMEDIATE:
+			s++;
+			return atol(s);
+			break;
+		case DIRECT:
+			/* TODO: search the symbol table */
+			break;
+		case DISTANCE:
+			/* TODO */
+			break;
+		case REGISTER:
+			s++;
+			n = atoi(s);
+			if (n < 0 || n > 7)
+				/* TODO: errorize */
+				;
+			return n;
+	}
+	
+}
+
+
 void write_line(FILE *f, MY_Line *line)
 {
     instr_h_b *h;
