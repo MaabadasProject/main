@@ -37,7 +37,7 @@ void processFile (FILE *asFile, char *fileName)
     
     if (file->makeOb == MAKE)
     {
-        if ((symbols = symbols_list(file)))
+        if ((symbols = symbols_list(file)) && checkDirect(file,symbols))
         {
             makeObject(file,symbols);
             
@@ -59,4 +59,9 @@ void processFile (FILE *asFile, char *fileName)
         printErrors(file);
     }
     free_file(file);
+}
+
+int checkDirect (My_File *file, SymbolList *list)
+{
+    //I, Guy, will write this
 }
