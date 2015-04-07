@@ -35,10 +35,11 @@ instr_h_b *get_header(MY_Line *line)
 }
 
 /* returns the extra word that the addressing method needs. */
-long get_extra_words(parameter *p)
+long get_extra_words(parameter *p, SymbolList  *symbols)
 {
 	char *s = p->value;
 	int n;
+	Symbol s;
 	
 	switch(p->kind)
 	{
@@ -47,7 +48,11 @@ long get_extra_words(parameter *p)
 			return atol(s);
 			break;
 		case DIRECT:
-			/* TODO: search the symbol table */
+			s = search_list(symbols, p->value);
+			if(!s)
+				/* TODO: errorize */
+				;
+			return s->value;
 			break;
 		case DISTANCE:
 			/* TODO */

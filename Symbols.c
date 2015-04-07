@@ -78,3 +78,15 @@ Symbol * new_symbol(char *symName, int symValue)
 	p->next = NULL;
 	return p;
 }
+
+Symbol *search_list(symbolList *list, char *name)
+{
+	Symbol curr = list->head;
+	while (curr)
+	{
+		if(!strcmp(curr->name, name))
+			return curr;
+		curr = curr->next;
+	}
+	return NULL;
+}
