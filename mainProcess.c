@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            printf("error: the file %s coud not be found\n",fileName);
+            printf("error: the file %s coud not be found.\n",fileName);
         }
     }
     return 0;
@@ -37,21 +37,26 @@ void processFile (FILE *asFile, char *fileName)
     
     if (file->makeOb == MAKE)
     {
-        symbols = symbols_list(file);
-        
-        if (symbols)
+        if ((symbols = symbols_list(file)))
         {
-            //continue here
+            makeObject(file,symbols);
+            
+            if (file->makeExt == MAKE)
+                makeExtern(file,symbols);
+            
+            if (file->makeEnt == MAKE)
+                makeEntry(file,symbols);
+            
             free_list(symbols);
         }
         else
         {
-            // and here
+            printf("error: label can only be defined once.\n");
         }
     }
     else
     {
-        // and here
+        printErrors(file);
     }
     free_file(file);
 }
