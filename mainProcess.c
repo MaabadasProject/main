@@ -34,11 +34,24 @@ void processFile (FILE *asFile, char *fileName)
     My_File *file;
     
     file = new_file(asFile);
-    symbols = symbols_list(file);
     
-    /* TOBE: continued... */
-	/* TODO: (so this can be fined in one find */
-    
-    free_list(symbols);
+    if (file->makeOb == MAKE)
+    {
+        symbols = symbols_list(file);
+        
+        if (symbols)
+        {
+            //continue here
+            free_list(symbols);
+        }
+        else
+        {
+            // and here
+        }
+    }
+    else
+    {
+        // and here
+    }
     free_file(file);
 }
