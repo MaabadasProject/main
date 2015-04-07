@@ -39,7 +39,7 @@ long get_extra_words(parameter *p, SymbolList  *symbols)
 {
 	char *s = p->value;
 	int n;
-	Symbol s;
+	Symbol sym;
 	
 	switch(p->kind)
 	{
@@ -48,11 +48,11 @@ long get_extra_words(parameter *p, SymbolList  *symbols)
 			return atol(s);
 			break;
 		case DIRECT:
-			s = search_list(symbols, p->value);
-			if(!s)
+			sym = search_list(symbols, p->value);
+			if(!sym)
 				/* TODO: errorize */
 				;
-			return s->value;
+			return sym->value;
 			break;
 		case DISTANCE:
 			/* TODO */
