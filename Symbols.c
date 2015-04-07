@@ -17,7 +17,7 @@ SymbolList * symbols_list(My_File *file)
     {
         if (currLine->label)
         {
-            if (inList(currLine->label,dummy->next) == -1)
+            if (!search_list(currLine->label,dummy->next))
             {
                 currSym->next = new_symbol(currLine->label,wordCount);
                 currSym = currSym->next;
@@ -31,7 +31,7 @@ SymbolList * symbols_list(My_File *file)
         }
         else if (currLine->kind == Request && currLine->statement.request.kind == EXTERN)
         {
-            if (inList(currLine->statement.request.data.str,dummy->next) == -1)
+            if (!search_list(currLine->statement.request.data.str,dummy->next))
             {
                 currSym->next = new_symbol(currLine->statement.request.data.str,0);
                 currSym = currSym->next;
@@ -70,20 +70,6 @@ int increaseBy (My_Line *line)
         else
             return strlen(line->statement.request.data.str) + 1;
     }
-}
-
-/* returns index if sym is in the symbols list list, an d -1 if not */
-int inList (char *sym, Symbol *list)
-{
-    int ind = 0;
-    while (list)
-    {
-        if (!strcmp(sym,list->name))
-            return ind;
-        list = list->next;
-        ind++;
-    }
-    return -1;
 }
 
 /* this will free the symbols list */
