@@ -17,13 +17,31 @@ SymbolList * symbols_list(My_File *file)
     {
         if (currLine->label)
         {
-            currSym->next = new_symbol(currLine->label,wordCount);
-            currSym = currSym->next;
+            if (inList(currLine->label,dummy->next) == -1)
+            {
+                currSym->next = new_symbol(currLine->label,wordCount);
+                currSym = currSym->next;
+            }
+            else
+            {
+                list->head = dummy->next;
+                free_list(list);
+                return NULL;
+            }
         }
         else if (currLine->kind == Request && currLine->statement.request.kind == EXTERN)
         {
-            currSym->next = new_symbol(currLine->statement.request.data.str,0);
-            currSym = currSym->next;
+            if (inList(currLine->statement.request.data.str,dummy->next) == -1)
+            {
+                currSym->next = new_symbol(currLine->statement.request.data.str,0);
+                currSym = currSym->next;
+            }
+            else
+            {
+                list->head = dummy->next;
+                free_list(list);
+                return NULL;
+            }
         }
         wordCount += increaseBy(currLine);
     }
@@ -35,7 +53,37 @@ SymbolList * symbols_list(My_File *file)
 /* returns the number of lines the line will be in the object file */
 int increaseBy (My_Line *line)
 {
-    //TODO: write the func
+    if (line->kind == Command)
+    {
+        if (line->statement.command.p1->kind == REGISTER && line->statement.command.p2->kind == REGISTER)
+            return 2;
+        if (line->statement.command.p1->kind != NONE)
+            return 3;
+        if (line->statement.command.p2->kind != NONE)
+            return 2;
+        return 1;
+    }
+    else // if line->kind == Request
+    {
+        if (line->statement.request.kind == DATA)
+            return line->statement.request.data.nums.len;
+        else
+            return strlen(line->statement.request.data.str) + 1;
+    }
+}
+
+/* returns index if sym is in the symbols list list, an d -1 if not */
+int inList (char *sym, Symbol *list)
+{
+    int ind = 0;
+    while (list)
+    {
+        if (!strcmp(sym,list->name))
+            return ind;
+        list = list->next;
+        ind++;
+    }
+    return -1;
 }
 
 /* this will free the symbols list */
@@ -48,10 +96,12 @@ void free_list (SymbolList list)
         post = curr->next;
         while (post)
         {
+            free(curr->name);
             free(curr);
             curr = post;
             post = post->next;
         }
+        free(curr->name);
         free(curr);
     }
     free(list);
