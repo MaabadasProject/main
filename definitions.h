@@ -80,13 +80,16 @@ typedef struct
     enum Build makeEnt; /* if .entry was found */
 } My_File;
 
-typedef struct {
-    int mode   :2; /* E/R/A */
-    int target :2; /* target operand Addressing method*/
-    int source :2; /* source operand Addressing method*/
-    int opcode :4;
-    int group  :2; /* the amount of operands for this instruction */
-} instr_h; /* the instruction header - the first word of each instruction */
+typedef union {
+    unsigned short int value;
+    struct {
+        int mode   :2; /* E/R/A */
+        int target :2; /* target operand Addressing method*/
+        int source :2; /* source operand Addressing method*/
+        int opcode :4;
+        int group  :2; /* the amount of operands for this instruction */
+    } bits;
+}instr_h; /* the instruction header - the first word of each instruction */
 
 typedef struct Node
 {
