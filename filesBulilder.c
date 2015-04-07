@@ -35,10 +35,11 @@ instr_h_b *get_header(MY_Line *line)
 }
 
 /* returns the extra word that the addressing method needs. */
-long get_extra_words(parameter *p)
+long get_extra_words(parameter *p, SymbolList  *symbols, int curr_location)
 {
 	char *s = p->value;
 	int n;
+	Symbol sym;
 	
 	switch(p->kind)
 	{
@@ -47,10 +48,44 @@ long get_extra_words(parameter *p)
 			return atol(s);
 			break;
 		case DIRECT:
-			/* TODO: search the symbol table */
+			sym = search_list(symbols, p->value);
+			if(!sym)
+				/* TODO: errorize */
+				;
+			return sym->value;
 			break;
 		case DISTANCE:
-			/* TODO */
+			{
+				char *word = s;
+				Symbol sym2;
+				long res=0;
+				long n=0;
+				
+				while (word && *word != ',')
+					word++;
+				if(!word)
+					/* TODO: errorize */
+					;
+				*word = '\0';
+				word++;
+				if(!word)
+					/* TODO: errorize */
+					;
+				sym = search_list(s);
+				
+				sym2 = search_list(word);
+				if(!sym || !sym2)
+					/* TODO: errorize */
+					;
+				
+				#define abs (a) ((a) > 0 ? (a) : 0)
+				res = abs(sym->value - curr_location);
+				n  = abs(sym2->value - curr_location);
+				if (res < n) res = n;
+				n = abs(sym->value - sym2->value);
+				if (res < n) res = n;
+				return res;
+			}
 			break;
 		case REGISTER:
 			s++;
