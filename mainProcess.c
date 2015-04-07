@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            printf("error: the file %s coud not be found\n",fileName);
+            printf("error: the file %s coud not be found.\n",fileName);
         }
     }
     return 0;
