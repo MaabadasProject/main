@@ -41,6 +41,8 @@ void processFile (FILE *asFile, char *fileName)
         
         if (symbols)
         {
+			
+			
             //continue here
             free_list(symbols);
         }
