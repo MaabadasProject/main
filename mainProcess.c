@@ -32,12 +32,15 @@ void processFile (FILE *asFile, char *fileName)
 {
     SymbolList *symbols;
     My_File *file;
+    int undeclared;
     
     file = new_file(asFile);
+    undeclared = 0;
     
     if (file->makeOb == MAKE)
     {
-        if ((symbols = symbols_list(file)) && checkDirect(file,symbols))
+        undeclared = check_direct_address_method(file,symbols);
+        if ((symbols = symbols_list(file)) && !undeclared)
         {
             makeObject(file,symbols);
             
@@ -51,7 +54,10 @@ void processFile (FILE *asFile, char *fileName)
         }
         else
         {
-            printf("error: label can only be defined once.\n");
+            if (undeclared)
+                printf("error: %d symbols were not declared",undeclared);
+            else
+                printf("error: label can only be defined once.\n");
         }
     }
     else
@@ -61,7 +67,56 @@ void processFile (FILE *asFile, char *fileName)
     free_file(file);
 }
 
-int checkDirect (My_File *file, SymbolList *list)
+/* checks if all the direct variables were declared */
+int check_direct_address_method (My_File *file, SymbolList *list)
 {
-    //I, Guy, will write this
+    My_Line *curr;
+    int undeclared;
+    char *second;
+    
+    undeclared = 0;
+    curr = file->FirstLine;
+    
+    while (curr)
+    {
+        if (curr->kind == Command)
+        {
+            if (curr->statement.command.p1->kind == DIRECT)
+                if (!search_list(list,curr->statement.command.p1->value))
+                    undeclared++;
+            else if (curr->statement.command.p1->kind == DISTANCE)
+            {
+                second = curr->statement.command.p1->value;
+                while ((*second) != ',')
+                    second++;
+                *second = '\0';
+                second++;
+                if (!search_list(list,curr->statement.command.p1->value))
+                    undeclared++;
+                if (!search_list(list,second))
+                    undeclared++;
+                *(second-1) = ',';
+            }
+            
+            if (curr->statement.command.p2->kind == DIRECT)
+                if (!search_list(list,curr->statement.command.p2->value))
+                    undeclared++;
+            else if (curr->statement.command.p2->kind == DISTANCE)
+            {
+                second = curr->statement.command.p2->value;
+                while ((*second) != ',')
+                    second++;
+                *second = '\0';
+                second++;
+                if (!search_list(list,curr->statement.command.p2->value))
+                    undeclared++;
+                if (!search_list(list,second))
+                    undeclared++;
+                *(second-1) = ',';
+            }
+        }
+        curr++;
+    }
+    
+    return undeclared;
 }
