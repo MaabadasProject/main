@@ -284,7 +284,7 @@ int set_as_command(My_Line *myline, char *line, char err[])
     {
         free_parameter(p1);
         free_parameter(p2);
-        strcpy(err, "parameters dosn't fit command");
+        strcpy(err, "parameters doesn't fit command");
         return 1;
     }
 }
@@ -796,6 +796,7 @@ void free_line(My_Line *line)
 
 void free_parameter(parameter *p)
 {
-    free(p->value);
+    /* free(p->value); */
+	/* do not free ; this is a pointer into the middle of some other string. */
     free(p);
 }

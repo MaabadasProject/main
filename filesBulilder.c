@@ -107,6 +107,23 @@ void write_line(FILE *f, MY_Line *line)
     {
         h = get_header(line);
         fwrite(h, 2 /* maybe? */, 1, f);
+		
+		switch(line->kind)
+		{
+			case Request:
+				switch(line->statement.request.kind)
+				{
+					case STRING:
+					case ENTRY:
+					case EXTERN:
+						fwrite(line->statement.request.data.nums.arr, 1, line->statement.request.data.nums.len, f);
+						
+						break;
+					case DATA:
+						fputs(f, line->statement.request.data.str);
+				}
+		}
+		
         free(instr_h_b);
     }
 }

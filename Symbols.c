@@ -115,7 +115,7 @@ Symbol * new_symbol(char *symName, int symValue)
 	return p;
 }
 
-Symbol *search_list(symbolList *list, char *name)
+Symbol *search_list(SymbolList *list, char *name)
 {
 	Symbol curr = list->head;
 	while (curr)
