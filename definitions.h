@@ -60,7 +60,7 @@ typedef struct line
                     int len;
                 }nums;
                 char *str; /* for .string, .entry and .extern */
-            } data; /* the data of the command; unimplemented */
+            } data;
         } request;
         struct /* a command */
         {
