@@ -115,6 +115,7 @@ int check_direct_address_method (My_File *file, SymbolList *list)
                 *(second-1) = ',';
             }
         }
+        curr++;
     }
     
     return undeclared;
