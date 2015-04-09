@@ -1,10 +1,6 @@
 
 #include "my_file.h"
-#define skip_spaces(line)\
-{\
-while(*(line) == ' ' || *(line) == '\t')\
-(line)++;\
-}
+
 
 My_File * new_file (FILE *asFile)
 {
@@ -21,8 +17,9 @@ My_File * new_file (FILE *asFile)
     
     
     prev = NULL;
-    while (!feof(asFile)) {
-        curr = new_line(fgets(str_line, MAX_LINE_LENGTH, asFile));
+    while (fgets(str_line, MAX_LINE_LENGTH, asFile))
+    {
+        curr = new_line(str_line);
         if (curr->kind == Request)
         {
             if (curr->statement.request.kind == ENTRY)
@@ -58,12 +55,12 @@ My_Line * new_line (char line[])
     foundError = 0;
     err = (char *)malloc(MAX_ERROR_LENGTH);
     myline = (My_Line *)malloc(sizeof(My_Line));
-    getWord(&line, curr);
+    line = getWord(line, curr);
     
     if (is_label(curr))
     {
         strncpy(myline->label, curr, strlen(curr)-1);
-        getWord(&line, curr);
+        line = getWord(line, curr);
     }
     else
     {
@@ -113,20 +110,20 @@ My_Line * new_line (char line[])
     return myline;
 }
 
-void getWord (char **line, char word[])
+char * getWord (char *line, char word[])
 {
     int i = 0;
     
-    skip_spaces(*line);
+    skip_spaces(&line);
     
     do
     {
-        word[i] = (**line);
-        (*line)++;
+        word[i] = (*line);
+        line++;
         i++;
-    }while (!is_delimiter(*(*line - 1)) && i < MAX_WORD_LENGTH - 1);
+    }while (!is_delimiter(*(line - 1)) && i < MAX_WORD_LENGTH - 1);
     
-    if (!is_delimiter(*(*line-1)))
+    if (!is_delimiter(*(line-1)))
     {
         word[0] = '\0';
     }
@@ -134,7 +131,13 @@ void getWord (char **line, char word[])
     {
         word[i] = '\0';
     }
-    
+    return line;
+}
+
+void skip_spaces(char **line)
+{
+    while((*(*line)) == ' ' || (*(*line)) == '\t')
+        (*line)++;
 }
 
 int set_as_command(My_Line *myline, char *line, char err[])
@@ -142,7 +145,7 @@ int set_as_command(My_Line *myline, char *line, char err[])
     parameter *p1,*p2;
     int i,len;
     
-    skip_spaces(line);
+    skip_spaces(&line);
     p1 = (parameter *)malloc(sizeof(parameter));
     p2 = (parameter *)malloc(sizeof(parameter));
     
@@ -161,9 +164,9 @@ int set_as_command(My_Line *myline, char *line, char err[])
             break;
         case DISTANCE:
             line++;
-            skip_spaces(line);
+            skip_spaces(&line);
             line++;
-            skip_spaces(line);
+            skip_spaces(&line);
             i = 0;
             while ((*line) != ' ' && (*line) != '\t' && (*line) != ',')
             {
@@ -171,22 +174,24 @@ int set_as_command(My_Line *myline, char *line, char err[])
                 i++;
                 line++;
             }
-            skip_spaces(line);
+            skip_spaces(&line);
             line++;
-            skip_spaces(line);
+            skip_spaces(&line);
             p1->value[i] = ',';
             i++;
             while ((*line) != ' ' && (*line) != '\t' && (*line) != ')')
             {
                 p1->value[i] = (*line);
+                i++;
                 line++;
             }
             p1->value[len] = '\0';
-            skip_spaces(line);
+            skip_spaces(&line);
             line++;
             break;
         case NONE:
             p1->value = NULL;
+            break;
         case ERROR:
             free_parameter(p1);
             free(p2);
@@ -195,7 +200,7 @@ int set_as_command(My_Line *myline, char *line, char err[])
             break;
     }
     
-    skip_spaces(line);
+    skip_spaces(&line);
     if ((*line) != '\n' && (*line) != '\0')
     {
         if ((*line) != ',')
@@ -206,7 +211,7 @@ int set_as_command(My_Line *myline, char *line, char err[])
             return 1;
         }
         line++;
-        skip_spaces(line);
+        skip_spaces(&line);
         p2->kind = addressingMethod(line);
         len = param_length(line,p2->kind);
         p2->value = (char *)malloc(len+1);
@@ -222,9 +227,9 @@ int set_as_command(My_Line *myline, char *line, char err[])
                 break;
             case DISTANCE:
                 line++;
-                skip_spaces(line);
+                skip_spaces(&line);
                 line++;
-                skip_spaces(line);
+                skip_spaces(&line);
                 i = 0;
                 while ((*line) != ' ' && (*line) != '\t' && (*line) != ',')
                 {
@@ -232,9 +237,9 @@ int set_as_command(My_Line *myline, char *line, char err[])
                     i++;
                     line++;
                 }
-                skip_spaces(line);
+                skip_spaces(&line);
                 line++;
-                skip_spaces(line);
+                skip_spaces(&line);
                 p2->value[i] = ',';
                 i++;
                 while ((*line) != ' ' && (*line) != '\t' && (*line) != ')')
@@ -243,7 +248,7 @@ int set_as_command(My_Line *myline, char *line, char err[])
                     line++;
                 }
                 p2->value[len] = '\0';
-                skip_spaces(line);
+                skip_spaces(&line);
                 line++;
                 break;
             case NONE:
@@ -255,7 +260,7 @@ int set_as_command(My_Line *myline, char *line, char err[])
                 return 1;
                 break;
         }
-        skip_spaces(line);
+        skip_spaces(&line);
         if ((*line) != '\n' && (*line) != '\0')
         {
             free_parameter(p1);
@@ -306,7 +311,7 @@ int set_as_request(My_Line *myline, char *line, char err[])
             int *nums = (int *)malloc(sizeof(int) * len);
             for (i = 0; i < len; i++)
             {
-                skip_spaces(line);
+                skip_spaces(&line);
                 curr = 0;
                 if ((*line) == '-')
                     sign = -1;
@@ -321,7 +326,7 @@ int set_as_request(My_Line *myline, char *line, char err[])
                 while (isdigit(*(++line)))
                     curr = curr * 10 + (*line) - '0';
                 
-                skip_spaces(line);
+                skip_spaces(&line);
                 line++;
                 nums[i] = curr * sign;
             }
@@ -333,7 +338,7 @@ int set_as_request(My_Line *myline, char *line, char err[])
         case STRING:
         {
             char *string = (char *)malloc(len+1);
-            skip_spaces(line);
+            skip_spaces(&line);
             line++;
             strncpy(string,line,len);
             string[len] = '\0';
@@ -344,7 +349,7 @@ int set_as_request(My_Line *myline, char *line, char err[])
         default:
         {
             char *symbol = (char *)malloc(len+1);
-            skip_spaces(line);
+            skip_spaces(&line);
             strncpy(symbol,line,len);
             symbol[len] = '\0';
             myline->statement.request.data.str = symbol;
@@ -357,7 +362,7 @@ int set_as_request(My_Line *myline, char *line, char err[])
 int data_check(char *param, int kind)
 {
     int len = 0;
-    skip_spaces(param);
+    skip_spaces(&param);
     switch (kind) {
         case DATA:
         {
@@ -368,7 +373,7 @@ int data_check(char *param, int kind)
                 while ((*param) != '\0' && (*param) != '\n') {
                     if (is_delimiter(*param) && (*param) != ':')
                     {
-                        skip_spaces(param);
+                        skip_spaces(&param);
                         if ((*param) == '\0' || (*param) == '\n')
                             return len;
                         else
@@ -376,7 +381,7 @@ int data_check(char *param, int kind)
                             if ((*param) != ',')
                                 return -1;
                             param++;
-                            skip_spaces(param);
+                            skip_spaces(&param);
                             if ((*param) != '+' && (*param) != '-' && !isdigit(*param))
                                 return -1;
                             len++;
@@ -410,7 +415,7 @@ int data_check(char *param, int kind)
                 if ((*param) == '\"')
                 {
                     param++;
-                    skip_spaces(param);
+                    skip_spaces(&param);
                     if ((*param) == '\0' || (*param) == '\n')
                         return len;
                 }
@@ -427,7 +432,7 @@ int data_check(char *param, int kind)
                     param++;
                     len++;
                 }
-                skip_spaces(param);
+                skip_spaces(&param);
                 if ((*param) == '\0' || (*param) == '\n')
                     return len;
             }
@@ -440,7 +445,7 @@ int data_check(char *param, int kind)
 
 int is_empty (char *line)
 {
-    skip_spaces(line);
+    skip_spaces(&line);
     return ((*line) == ';' || (*line) == '\n' || (*line) == '\0');
 }
 
@@ -547,6 +552,14 @@ int is_command (char *word, char del)
             if (!(strcmp(word,com)))
                 return i;
         }
+        for (i = 0; i < NUMBER_OF_COMMANDS; i++)
+        {
+            strcpy(com,opcodes[i]);
+            com[strlen(opcodes[i])] = '\n';
+            com[strlen(opcodes[i])+1] = '\0';
+            if (!(strcmp(word,com)))
+                return i;
+        }
     }
     return -1;
 }
@@ -594,7 +607,7 @@ int addressingMethod (char *line)
             line++;
             while (isdigit(*line))
                 line++;
-            skip_spaces(line);
+            skip_spaces(&line);
             if ((*line) == '\n' || (*line) == '\0' || (*line) == ',')
                 return IMMEDIATE;
         }
@@ -606,7 +619,7 @@ int addressingMethod (char *line)
         if ((*line) == '(')
         {
             line++;
-            skip_spaces(line);
+            skip_spaces(&line);
             while ((*line) != ' ' && (*line) != '\t' && (*line) != ',')
             {
                 if (!isalnum(*line))
@@ -615,11 +628,11 @@ int addressingMethod (char *line)
                 }
                 line++;
             }
-            skip_spaces(line);
+            skip_spaces(&line);
             if ((*line) == ',')
             {
                 line++;
-                skip_spaces(line);
+                skip_spaces(&line);
                 while ((*line) != ' ' && (*line) != '\t' && (*line) != ')')
                 {
                     if (!isalnum(*line))
@@ -628,11 +641,11 @@ int addressingMethod (char *line)
                     }
                     line++;
                 }
-                skip_spaces(line);
+                skip_spaces(&line);
                 if ((*line) == ')')
                 {
                     line++;
-                    skip_spaces(line);
+                    skip_spaces(&line);
                     if ((*line) == ',' || (*line) == '\n' || (*line) == '\0')
                         return DISTANCE;
                 }
@@ -644,7 +657,7 @@ int addressingMethod (char *line)
         if ((*(line+1)) >= '0' && (*(line+1)) <= '7' && (*(line+2)) != ':' && is_delimiter(*(line+2)))
         {
             line += 2;
-            skip_spaces(line);
+            skip_spaces(&line);
             if ((*line) == ',' || (*line) == '\n' || (*line) == '\0')
                 return REGISTER;
         }
@@ -660,7 +673,7 @@ int addressingMethod (char *line)
             }
             line++;
         }
-        skip_spaces(line);
+        skip_spaces(&line);
         if ((*line) == '\0' || (*line) == '\n' || (*line) == ',')
         {
             return DIRECT;
@@ -677,7 +690,7 @@ int param_length (char *param, int kind)
 {
     int count;
     count = 0;
-    skip_spaces(param);
+    skip_spaces(&param);
     switch (kind) {
         case IMMEDIATE:
             param += 2;
@@ -690,7 +703,7 @@ int param_length (char *param, int kind)
             break;
         case DISTANCE:
             param += 2;
-            skip_spaces(param);
+            skip_spaces(&param);
             param++;
             count++;
             while (isalnum(*param))
@@ -698,9 +711,9 @@ int param_length (char *param, int kind)
                 count++;
                 param++;
             }
-            skip_spaces(param);
+            skip_spaces(&param);
             param++;
-            skip_spaces(param);
+            skip_spaces(&param);
             count += 2;
             param++;
             while (isalnum(*param))
@@ -747,12 +760,12 @@ int sum (int arr[], int len)
     return count;
 }
 
-void free_file(My_File file)
+void free_file(My_File *file)
 {
-    if (file.firstLine)
+    if (file->firstLine)
     {
         My_Line *curr, *post;
-        curr = file.firstLine;
+        curr = file->firstLine;
         post = curr->next;
         while (post)
         {
@@ -762,12 +775,11 @@ void free_file(My_File file)
         }
         free_line(curr);
     }
-    free(&file);
+    free(file);
 }
 
 void free_line(My_Line *line)
 {
-    free(line->label);
     switch(line->kind)
     {
         case Command:

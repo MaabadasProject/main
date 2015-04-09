@@ -33,6 +33,7 @@ unsigned short get_parameter(parameter *p, SymbolList  *symbols, int position, u
     char *second;
     Symbol *sym1,*sym2;
     
+    value = 0;
     switch (p->kind) {
         case IMMEDIATE:
             value = atoi(p->value);
@@ -77,6 +78,9 @@ unsigned short get_parameter(parameter *p, SymbolList  *symbols, int position, u
             if (position == FIRST)
                 value <<= 5;
             value += A;
+            break;
+        case ERROR:
+        case NONE:
             break;
     }
     
@@ -139,7 +143,7 @@ void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
                     fprintf(f,"%3X\t\t%.3X\n", *lineNum, valP2);
                     (*lineNum)++;
                 }
-                    
+                
             }
             else if (line->statement.command.p2)
             {
@@ -149,6 +153,8 @@ void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
                 (*lineNum)++;
             }
         }
+        case Error:
+            break;
     }
 }
 

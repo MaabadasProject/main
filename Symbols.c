@@ -70,7 +70,7 @@ int increaseBy (My_Line *line)
         if (line->statement.request.kind == DATA)
             return line->statement.request.data.nums.len;
         else if (line->statement.request.kind == STRING)
-            return strlen(line->statement.request.data.str) + 1;
+            return (int)strlen(line->statement.request.data.str) + 1;
         else
             return 0;
     }
@@ -108,23 +108,22 @@ SymbolList * new_symbolList()
 /* symName should by shorter than 31 chars */
 Symbol * new_symbol(char *symName, int symValue)
 {
-    /* TODO: write when it's time */
-	Symbol *p;
-	p = (Symbol *) malloc (sizeof(Symbol *));
+    Symbol *p;
+    p = (Symbol *) malloc (sizeof(Symbol *));
     p->name = symName;
-	p->value = symValue;
-	p->next = NULL;
-	return p;
+    p->value = symValue;
+    p->next = NULL;
+    return p;
 }
 
 Symbol *search_list(SymbolList *list, char *name)
 {
-	Symbol *curr = list->head;
-	while (curr)
-	{
-		if(!strcmp(curr->name, name))
-			return curr;
-		curr = curr->next;
-	}
-	return NULL;
+    Symbol *curr = list->head;
+    while (curr)
+    {
+        if(!strcmp(curr->name, name))
+            return curr;
+        curr = curr->next;
+    }
+    return NULL;
 }
