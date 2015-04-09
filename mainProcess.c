@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            printf("error: the file %s coud not be found.\n",fileName);
+            fprintf(stderr,"error: the file %s coud not be found.\n",fileName);
         }
     }
     return 0;
@@ -43,7 +43,7 @@ void processFile (FILE *asFile, char *fileName)
             undeclared = check_direct_variables(file,symbols);
             if (undeclared == -1)
             {
-                printf("error: direct addressing method parameters must not be external.");
+                fprintf(stderr,"error: direct addressing method parameters must not be external.\n");
             }
             else if (!undeclared)
             {
@@ -57,13 +57,13 @@ void processFile (FILE *asFile, char *fileName)
             }
             else
             {
-                printf("error: %d symbols were not declared",undeclared);
+                fprintf(stderr,"error: %d symbols were not declared.\n",undeclared);
             }
             free_list(symbols);
         }
         else
         {
-            printf("error: label can only be defined once.\n");
+            fprintf(stderr,"error: label can only be defined once.\n");
         }
     }
     else
@@ -173,7 +173,7 @@ void printErrors(My_File *file)
     {
         if (curr->kind == Error)
         {
-            printf("error: %s\n",curr->statement.error);
+            fprintf(stderr,"error: %s\n",curr->statement.error);
         }
         curr = curr->next;
     }
