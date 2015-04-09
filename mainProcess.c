@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            fprintf(stderr,"error: the file %s is not an assembly file.\n",fileName);
+            fprintf(stderr,"error: the file %s is not an assembly file.\n",argv[i]);
         }
     }
     return 0;
@@ -100,7 +100,7 @@ char * assemblyFile(char *file)
     {
         name = (char *)malloc(length+1);
         strncpy(name,file,length);
-        name[length] = '\0'
+        name[length] = '\0';
         return name;
     }
     return NULL;
