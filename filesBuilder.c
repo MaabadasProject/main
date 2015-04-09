@@ -1,7 +1,7 @@
 
-#include "filesBulilder.h"
+#include "filesBuilder.h"
 
-int get_header(MY_Line *line)
+int get_header(My_Line *line)
 {
     instr_h h;
     int amount_of_parameters;
@@ -10,14 +10,14 @@ int get_header(MY_Line *line)
     amount_of_parameters = 0;
     
     h.bits.mode = A;
-    if(line->statement.command->p1)
+    if(line->statement.command.p1)
     {
-        h.bits.target = line->statement.command->p1->kind;
+        h.bits.target = line->statement.command.p1->kind;
         amount_of_parameters++;
     }
-    if(line->statement.command->p2)
+    if(line->statement.command.p2)
     {
-        h.bits.source = line->statement.command->p2->kind;
+        h.bits.source = line->statement.command.p2->kind;
         amount_of_parameters++;
     }
     h.bits.opcode = line->statement.command.opcode;
@@ -81,13 +81,6 @@ unsigned short get_parameter(parameter *p, SymbolList  *symbols, int position, u
     }
     
     return value;
-}
-
-unsigned int abs (int n)
-{
-    if (n < 0)
-        return -n;
-    return n;
 }
 
 void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lineNum)
@@ -189,16 +182,16 @@ void writeExLine (FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
     }
     else
     {
-        if (line->statement.Request.kind == DATA)
-            (*lineNum) += line->statement.Request.data.nums.len;
-        else if (line->statement.Request.kind == STRING)
-            (*lineNum) += strlen(line->statement.Request.data.str)+1;
+        if (line->statement.request.kind == DATA)
+            (*lineNum) += line->statement.request.data.nums.len;
+        else if (line->statement.request.kind == STRING)
+            (*lineNum) += strlen(line->statement.request.data.str)+1;
     }
 }
 
 void writeEnLine (FILE *f, My_Line *line, SymbolList *symbols)
 {
-    if (line->kind == Request && line->statement.reques.kind == ENTRY)
+    if (line->kind == Request && line->statement.request.kind == ENTRY)
     {
         Symbol *sym = search_list(symbols,line->statement.request.data.str);
         if (sym)
@@ -212,7 +205,7 @@ void writeEnLine (FILE *f, My_Line *line, SymbolList *symbols)
     }
 }
 
-void makeObject(MY_FILE *my_f, SymbolList *symbols, char *filename)
+void makeObject(My_File *my_f, SymbolList *symbols, char *filename)
 {
     FILE *f;
     char obName[strlen(filename)+strlen(OBJECT)];
@@ -243,7 +236,7 @@ void makeObject(MY_FILE *my_f, SymbolList *symbols, char *filename)
     }
 }
 
-void makeExtern(MY_FILE *my_f, SymbolList *symbols, char *filename)
+void makeExtern(My_File *my_f, SymbolList *symbols, char *filename)
 {
     FILE *f;
     char exName[strlen(filename)+strlen(EXTERNALS)];
@@ -274,7 +267,7 @@ void makeExtern(MY_FILE *my_f, SymbolList *symbols, char *filename)
     }
 }
 
-void makeEntry(MY_FILE *my_f, SymbolList *symbols, char *filename)
+void makeEntry(My_File *my_f, SymbolList *symbols, char *filename)
 {
     FILE *f;
     char enName[strlen(filename)+strlen(ENTRIES)];

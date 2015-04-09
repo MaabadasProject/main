@@ -1,28 +1,109 @@
 
 #include "mainProcess.h"
 
+char *opcodes[NUMBER_OF_COMMANDS] =
+    { "mov"
+    , "cmp"
+    , "add"
+    , "sub"
+    , "not"
+    , "clr"
+    , "lea"
+    , "inc"
+    , "dec"
+    , "jmp"
+    , "bne"
+    , "red"
+    , "prn"
+    , "jsr"
+    , "rts"
+    , "stop"};
+
+int legal_adressing_methods[NUMBER_OF_COMMANDS][2][NUMBER_OF_ADDRESSING_METHODS] =
+    /*source  ||  destination*/
+    {{{1,1,1,1},	{0,1,0,1}},
+    {{1,1,1,1},		{1,1,1,1}},
+    {{1,1,1,1},		{0,1,0,1}},
+    {{1,1,1,1},		{0,1,0,1}},
+    {{0,0,0,0},		{0,0,0,1}},
+    {{0,0,0,0},		{0,1,0,1}},
+    {{0,1,0,0},		{0,1,0,1}},
+    {{0,0,0,0},		{0,1,0,1}},
+    {{0,0,0,0},		{0,1,0,1}},
+    {{0,0,0,0},		{0,1,1,1}},
+    {{0,0,0,0},		{0,1,1,1}},
+    {{0,0,0,0},		{0,1,1,1}},
+    {{0,0,0,0},		{1,1,1,1}},
+    {{0,0,0,0},		{0,1,0,0}},
+    {{0,0,0,0},		{0,0,0,0}},
+    {{0,0,0,0},		{0,0,0,0}}};
+
+char *requests[NUMBER_OF_REQUESTS] =
+    { ".data"
+    , ".string"
+    , ".entry"
+    , ".extern"};
+
+char *registers[NUMBER_OF_REGISTERS] =
+    { "r0"
+    , "r1"
+    , "r2"
+    , "r3"
+    , "r4"
+    , "r5"
+    , "r6"
+    , "r7"};
+
 int main(int argc, char *argv[])
 {
     int i;
     FILE *currAssemblyFile;
+    char *fileName;
     
     for (i = 1; i < argc; i++)
     {
-        char fileName[strlen(argv[i]) + 4], *end;
-        strcpy(fileName,argv[i]);
-        end = fileName + strlen(argv[i]);
-        strcpy(end,ASSEMBLY);
-        if (currAssemblyFile = fopen(argv[i], "r"))
+        if ((fileName = assemblyFile(argv[i])))
         {
-            processFile(currAssemblyFile, argv[i]);
-            fclose(currAssemblyFile);
+            if ((currAssemblyFile = fopen(argv[i], "r")))
+            {
+                processFile(currAssemblyFile, argv[i]);
+                fclose(currAssemblyFile);
+            }
+            else
+            {
+                fprintf(stderr,"error: the file %s could not be found.\n",fileName);
+            }
+            free(fileName);
         }
         else
         {
-            fprintf(stderr,"error: the file %s coud not be found.\n",fileName);
+            fprintf(stderr,"error: the file %s is not an assembly file.\n",fileName);
         }
     }
     return 0;
+}
+
+char * assemblyFile(char *file)
+{
+    int length;
+    char *curr, *name;
+    
+    curr = file;
+    length = 0;
+    
+    while (((*curr)!='\0')&&((*curr)!='.'))
+    {
+        length++;
+        curr++;
+    }
+    if (!(strcmp(curr,ASSEMBLY)))
+    {
+        name = (char *)malloc(length+1);
+        strncpy(name,file,length);
+        name[length] = '\0'
+        return name;
+    }
+    return NULL;
 }
 
 /* this is the whole process for a file. */
@@ -83,15 +164,17 @@ int check_direct_variables (My_File *file, SymbolList *list)
     char *second;
     
     undeclared = 0;
-    curr = file->FirstLine;
+    curr = file->firstLine;
     
     while (curr)
     {
         if (curr->kind == Command)
         {
             if (curr->statement.command.p1->kind == DIRECT)
+            {
                 if (!search_list(list,curr->statement.command.p1->value))
                     undeclared++;
+            }
             else if (curr->statement.command.p1->kind == DISTANCE)
             {
                 second = curr->statement.command.p1->value;
@@ -124,8 +207,10 @@ int check_direct_variables (My_File *file, SymbolList *list)
             }
             
             if (curr->statement.command.p2->kind == DIRECT)
+            {
                 if (!search_list(list,curr->statement.command.p2->value))
                     undeclared++;
+            }
             else if (curr->statement.command.p2->kind == DISTANCE)
             {
                 second = curr->statement.command.p2->value;
