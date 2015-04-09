@@ -9,36 +9,37 @@ SymbolList * symbols_list(My_File *file)
     int wordCount;
     
     list = new_symbolList();
-    dummy->next = NULL;
+    dummy = new_symbol("",0);
+    list->head = dummy;
     currSym = dummy;
     wordCount = FIRST_LINE;
     
-    for (currLine = file->head; currLine; currLine++)
+    for (currLine = file->firstLine; currLine; currLine = currLine->next)
     {
         if (currLine->label)
         {
-            if (!search_list(dummy->next,currLine->label))
+            if (!search_list(list,currLine->label))
             {
                 currSym->next = new_symbol(currLine->label,wordCount);
                 currSym = currSym->next;
             }
             else
             {
-                list->head = dummy->next;
+                list->head = dummy;
                 free_list(list);
                 return NULL;
             }
         }
         else if (currLine->kind == Request && currLine->statement.request.kind == EXTERN)
         {
-            if (!search_list(dummy->next,currLine->statement.request.data.str))
+            if (!search_list(list,currLine->statement.request.data.str))
             {
                 currSym->next = new_symbol(currLine->statement.request.data.str,0);
                 currSym = currSym->next;
             }
             else
             {
-                list->head = dummy->next;
+                list->head = dummy;
                 free_list(list);
                 return NULL;
             }
@@ -46,7 +47,8 @@ SymbolList * symbols_list(My_File *file)
         wordCount += increaseBy(currLine);
     }
     
-    list->head = dummy->next;
+    list->head = list->head->next;
+    free(dummy);
     return list;
 }
 
@@ -63,11 +65,11 @@ int increaseBy (My_Line *line)
             return 2;
         return 1;
     }
-    else // if line->kind == Request
+    else /* if line->kind == Request */
     {
         if (line->statement.request.kind == DATA)
             return line->statement.request.data.nums.len;
-        else (line->statement.request.kind == STRING)
+        else if (line->statement.request.kind == STRING)
             return strlen(line->statement.request.data.str) + 1;
         else
             return 0;
@@ -75,21 +77,19 @@ int increaseBy (My_Line *line)
 }
 
 /* this will free the symbols list */
-void free_list (SymbolList list)
+void free_list (SymbolList *list)
 {
-    if (list.head)
+    if (list->head)
     {
         Symbol *curr, *post;
-        curr = list.head;
+        curr = list->head;
         post = curr->next;
         while (post)
         {
-            free(curr->name);
             free(curr);
             curr = post;
             post = post->next;
         }
-        free(curr->name);
         free(curr);
     }
     free(list);
@@ -119,7 +119,7 @@ Symbol * new_symbol(char *symName, int symValue)
 
 Symbol *search_list(SymbolList *list, char *name)
 {
-	Symbol curr = list->head;
+	Symbol *curr = list->head;
 	while (curr)
 	{
 		if(!strcmp(curr->name, name))
