@@ -10,8 +10,6 @@
 #define OBJECT ".ob"
 #define EXTERNALS ".ext"
 #define ENTRIES ".ent"
-#define READ "r" /* for fopen */
-#define WRITE "w" /* for fopen */
 #define A 0 /* absolute */
 #define E 1 /* external */
 #define R 2 /* relocatable */
@@ -22,6 +20,7 @@
 #define MAX_REG_LEN 2
 #define MAX_COM_LEN 4
 #define MAX_REQ_LEN 7
+#define MAX_NUM 4096 /* 2 in power of 12 - we have 12 bits */
 #define NUMBER_OF_COMMANDS 16
 #define NUMBER_OF_REGISTERS 8
 #define NUMBER_OF_REQUESTS 4
