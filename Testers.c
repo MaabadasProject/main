@@ -6,7 +6,7 @@
  };*/
 
 char *opcodes[NUMBER_OF_COMMANDS] =
-{ "mov"
+    { "mov"
     , "cmp"
     , "add"
     , "sub"
@@ -24,8 +24,8 @@ char *opcodes[NUMBER_OF_COMMANDS] =
     , "stop"};
 
 int legal_adressing_methods[NUMBER_OF_COMMANDS][2][NUMBER_OF_ADDRESSING_METHODS] =
-/*source  ||  destination*/
-{{{1,1,1,1},	{0,1,0,1}},
+    /*source  ||  destination*/
+    {{{1,1,1,1},	{0,1,0,1}},
     {{1,1,1,1},		{1,1,1,1}},
     {{1,1,1,1},		{0,1,0,1}},
     {{1,1,1,1},		{0,1,0,1}},
@@ -43,13 +43,13 @@ int legal_adressing_methods[NUMBER_OF_COMMANDS][2][NUMBER_OF_ADDRESSING_METHODS]
     {{0,0,0,0},		{0,0,0,0}}};
 
 char *requests[NUMBER_OF_REQUESTS] =
-{ ".data"
+    { ".data"
     , ".string"
     , ".entry"
     , ".extern"};
 
 char *registers[NUMBER_OF_REGISTERS] =
-{ "r0"
+    { "r0"
     , "r1"
     , "r2"
     , "r3"
@@ -145,7 +145,7 @@ int main()
         }
             break;
         case Error:
-            printf("Error:\t%s\n",output->statement.error);
+            printf("error:\t%s\n",output->statement.error);
             break;
     }
     return 0;

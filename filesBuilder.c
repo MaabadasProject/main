@@ -207,7 +207,7 @@ void writeEnLine (FILE *f, My_Line *line, SymbolList *symbols)
         }
         else
         {
-            printf("error: variable %s wasn't declared.",line->statement.request.data.str);
+            fprintf(stderr,"error: variable %s wasn't declared.\n",line->statement.request.data.str);
         }
     }
 }
@@ -226,7 +226,7 @@ void makeObject(MY_FILE *my_f, SymbolList *symbols, char *filename)
     f = fopen(obName, "w");
     if (!f)
     {
-        printf("the file %s cannot be written to", obName);
+        fprintf(stderr,"error: the file %s cannot be written to.\n", obName);
     }
     else
     {
@@ -257,7 +257,7 @@ void makeExtern(MY_FILE *my_f, SymbolList *symbols, char *filename)
     f = fopen(exName, "w");
     if (!f)
     {
-        printf("the file %s cannot be written to", exName);
+        fprintf(stderr,"error: the file %s cannot be written to.\n", exName);
     }
     else
     {
@@ -285,7 +285,7 @@ void makeEntry(MY_FILE *my_f, SymbolList *symbols, char *filename)
     f = fopen(enName, "w");
     if (!f)
     {
-        printf("the file %s cannot be written to", enName);
+        fprintf(stderr,"error: the file %s cannot be written to.\n", enName);
     }
     else
     {
