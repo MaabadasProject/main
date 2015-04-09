@@ -796,7 +796,6 @@ void free_line(My_Line *line)
 
 void free_parameter(parameter *p)
 {
-    /* free(p->value); */
-	/* do not free ; this is a pointer into the middle of some other string. */
+    free(p->value);
     free(p);
 }

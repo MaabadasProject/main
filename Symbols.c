@@ -17,7 +17,7 @@ SymbolList * symbols_list(My_File *file)
     {
         if (currLine->label)
         {
-            if (!search_list(currLine->label,dummy->next))
+            if (!search_list(dummy->next,currLine->label))
             {
                 currSym->next = new_symbol(currLine->label,wordCount);
                 currSym = currSym->next;
@@ -31,7 +31,7 @@ SymbolList * symbols_list(My_File *file)
         }
         else if (currLine->kind == Request && currLine->statement.request.kind == EXTERN)
         {
-            if (!search_list(currLine->statement.request.data.str,dummy->next))
+            if (!search_list(dummy->next,currLine->statement.request.data.str))
             {
                 currSym->next = new_symbol(currLine->statement.request.data.str,0);
                 currSym = currSym->next;
@@ -67,8 +67,10 @@ int increaseBy (My_Line *line)
     {
         if (line->statement.request.kind == DATA)
             return line->statement.request.data.nums.len;
-        else
+        else (line->statement.request.kind == STRING)
             return strlen(line->statement.request.data.str) + 1;
+        else
+            return 0;
     }
 }
 

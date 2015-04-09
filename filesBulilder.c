@@ -1,147 +1,303 @@
 
 #include "filesBulilder.h"
 
-
-
-
-instr_h_b *get_header(MY_Line *line)
+int get_header(MY_Line *line)
 {
-    instr_h_b *h;
-    int amount_of_parameters = 0;
+    instr_h h;
+    int amount_of_parameters;
     
-    h = (*instr_h_b) malloc(sizeof(instr_h_b));
-    switch(line->kind)
+    h.value = 0;
+    amount_of_parameters = 0;
+    
+    h.bits.mode = A;
+    if(line->statement.command->p1)
     {
-        case Request:
-        case Error:
-            h->mode=0; break;
-        case Command:
-        /* first figure out the A/R/E */
-            if(line->statement.command->p1)
-            {
-                h.target = line->statement.command->p1->kind;
-                amount_of_parameters++;
-            }
-            if(line->statement.command->p2)
-            {
-                h.source = line->statement.command->p2->kind;
-                amount_of_parameters++;
-            }
-            h.opcode = line->statement.command.opcode;
-            h.group = amount_of_parameters;
+        h.bits.target = line->statement.command->p1->kind;
+        amount_of_parameters++;
     }
+    if(line->statement.command->p2)
+    {
+        h.bits.source = line->statement.command->p2->kind;
+        amount_of_parameters++;
+    }
+    h.bits.opcode = line->statement.command.opcode;
+    h.bits.group = amount_of_parameters;
     
-    return istr_h_b;
+    return h.value;
 }
 
 /* returns the extra word that the addressing method needs. */
-long get_extra_words(parameter *p, SymbolList  *symbols, int curr_location)
+unsigned short get_parameter(parameter *p, SymbolList  *symbols, int position, unsigned int commandLineNum)
 {
-	char *s = p->value;
-	int n;
-	Symbol sym;
-	
-	switch(p->kind)
-	{
-		case IMMEDIATE:
-			s++;
-			return atol(s);
-			break;
-		case DIRECT:
-			sym = search_list(symbols, p->value);
-			if(!sym)
-				/* TODO: errorize */
-				;
-			return sym->value;
-			break;
-		case DISTANCE:
-			{
-				char *word = s;
-				Symbol sym2;
-				long res=0;
-				long n=0;
-				
-				while (word && *word != ',')
-					word++;
-				if(!word)
-					/* TODO: errorize */
-					;
-				*word = '\0';
-				word++;
-				if(!word)
-					/* TODO: errorize */
-					;
-				sym = search_list(s);
-				
-				sym2 = search_list(word);
-				if(!sym || !sym2)
-					/* TODO: errorize */
-					;
-				
-				#define abs (a) ((a) > 0 ? (a) : 0)
-				res = abs(sym->value - curr_location);
-				n  = abs(sym2->value - curr_location);
-				if (res < n) res = n;
-				n = abs(sym->value - sym2->value);
-				if (res < n) res = n;
-				return res;
-			}
-			break;
-		case REGISTER:
-			s++;
-			n = atoi(s);
-			if (n < 0 || n > 7)
-				/* TODO: errorize */
-				;
-			return n;
-	}
-	
+    unsigned short int value;
+    char *second;
+    Symbol *sym1,*sym2;
+    
+    switch (p->kind) {
+        case IMMEDIATE:
+            value = atoi(p->value);
+            value <<= 2;
+            value += A;
+            value %= MAX_NUM;
+            break;
+        case DIRECT:
+            sym1 = search_list(symbols,p->value);
+            value = sym1->value;
+            value <<= 2;
+            if (value == 0)
+                value += E;
+            else
+                value += R;
+            value %= MAX_NUM;
+            break;
+        case DISTANCE:
+            second = p->value;
+            while ((*second) != ',')
+                second++;
+            second++;
+            (*(second-1)) = '\0';
+            
+            sym1 = search_list(symbols,p->value);
+            sym2 = search_list(symbols,second);
+            value = abs(sym1->value - sym2->value);
+            if (value < abs(sym1->value - commandLineNum))
+                value = abs(sym1->value - commandLineNum);
+            if (value < abs(sym2->value - commandLineNum))
+                value = abs(sym2->value - commandLineNum);
+            
+            (*(second-1)) = ',';
+            
+            value <<= 2;
+            value += A;
+            value %= MAX_NUM;
+            break;
+        case REGISTER:
+            value = ((p->value)[1] - '0');
+            value <<= 2;
+            if (position == FIRST)
+                value <<= 5;
+            value += A;
+            break;
+    }
+    
+    return value;
 }
 
-
-void write_line(FILE *f, MY_Line *line)
+unsigned int abs (int n)
 {
-    instr_h_b *h;
-    
-    for( ; line ; line = line->next)
+    if (n < 0)
+        return -n;
+    return n;
+}
+
+void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lineNum)
+{
+    switch(line->kind)
     {
-        h = get_header(line);
-        fwrite(h, 2 /* maybe? */, 1, f);
-		
-		switch(line->kind)
-		{
-			case Request:
-				switch(line->statement.request.kind)
-				{
-					case STRING:
-					case ENTRY:
-					case EXTERN:
-						fwrite(line->statement.request.data.nums.arr, 1, line->statement.request.data.nums.len, f);
-						
-						break;
-					case DATA:
-						fputs(f, line->statement.request.data.str);
-				}
-		}
-		
-        free(instr_h_b);
+        case Request:
+        {
+            switch(line->statement.request.kind)
+            {
+                case ENTRY:
+                case EXTERN:
+                    break;
+                case STRING:
+                {
+                    char *currChar = line->statement.request.data.str;
+                    while (currChar)
+                    {
+                        fprintf(f,"%3X\t\t%.3X\n", *lineNum, (unsigned int)(*currChar));
+                        currChar++;
+                        (*lineNum)++;
+                    }
+                    fprintf(f,"%3X\t\t000\n", *lineNum);
+                    (*lineNum)++;
+                }
+                    break;
+                case DATA:
+                {
+                    int i;
+                    for (i = 0; i < line->statement.request.data.nums.len; i++, (*lineNum)++)
+                        fprintf(f,"%3X\t\t%.3X\n", *lineNum, ((unsigned)line->statement.request.data.nums.arr[i] % MAX_NUM));
+                }
+                    break;
+            }
+        }
+            break;
+        case Command:
+        {
+            fprintf(f, "%3X\t\t%.3X\n", *lineNum, get_header(line));
+            (*lineNum)++;
+            if (line->statement.command.p1)
+            {
+                unsigned short valP1, valP2;
+                valP1 = get_parameter(line->statement.command.p1,symbols,FIRST,*lineNum);
+                valP2 = get_parameter(line->statement.command.p2,symbols,SECOND,*lineNum);
+                if (line->statement.command.p1->kind == REGISTER && line->statement.command.p2->kind == REGISTER)
+                {
+                    fprintf(f,"%3X\t\t%.3X\n", *lineNum, (valP1 + valP2));
+                    (*lineNum)++;
+                }
+                else
+                {
+                    fprintf(f,"%3X\t\t%.3X\n", *lineNum, valP1);
+                    (*lineNum)++;
+                    
+                    fprintf(f,"%3X\t\t%.3X\n", *lineNum, valP2);
+                    (*lineNum)++;
+                }
+                    
+            }
+            else if (line->statement.command.p2)
+            {
+                unsigned short valP2;
+                valP2 = get_parameter(line->statement.command.p2,symbols,SECOND,*lineNum);
+                fprintf(f,"%3X\t\t%.3X\n", *lineNum, valP2);
+                (*lineNum)++;
+            }
+        }
     }
 }
 
-/* this functions needs better care */
-void write_file(FILE *f, MY_FILE *my_f)
+void writeExLine (FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lineNum)
 {
-    wrie_line(f, my_f->firstLine)
+    if (line->kind == Command)
+    {
+        Symbol *sym;
+        (*lineNum)++;
+        
+        if (line->statement.command.p1->kind == DIRECT)
+        {
+            sym = search_list(symbols,line->statement.command.p1->value);
+            if (sym->value == 0)
+                fprintf(f,"%s\t\t%3X\n",sym->name,*lineNum);
+        }
+        if (line->statement.command.p1->kind != NONE)
+            (*lineNum)++;
+        
+        if (line->statement.command.p2->kind == DIRECT)
+        {
+            sym = search_list(symbols,line->statement.command.p2->value);
+            if (sym->value == 0)
+                fprintf(f,"%s\t\t%3X\n",sym->name,*lineNum);
+        }
+        if (line->statement.command.p2->kind != NONE)
+            (*lineNum)++;
+        
+        if (line->statement.command.p1->kind == REGISTER && line->statement.command.p2->kind == REGISTER)
+            (*lineNum)--;
+    }
+    else
+    {
+        if (line->statement.Request.kind == DATA)
+            (*lineNum) += line->statement.Request.data.nums.len;
+        else if (line->statement.Request.kind == STRING)
+            (*lineNum) += strlen(line->statement.Request.data.str)+1;
+    }
 }
 
-void handle_file(char *filename, MY_FILE *my_f)
+void writeEnLine (FILE *f, My_Line *line, SymbolList *symbols)
+{
+    if (line->kind == Request && line->statement.reques.kind == ENTRY)
+    {
+        Symbol *sym = search_list(symbols,line->statement.request.data.str);
+        if (sym)
+        {
+            fprintf(f,"%s\t\t%3X\n",sym->name,sym->value);
+        }
+        else
+        {
+            printf("error: variable %s wasn't declared.",line->statement.request.data.str);
+        }
+    }
+}
+
+void makeObject(MY_FILE *my_f, SymbolList *symbols, char *filename)
 {
     FILE *f;
-    f = fopen(filename, "w");
+    char obName[strlen(filename)+strlen(OBJECT)];
+    unsigned int *lineNum,lineNumber;
+    
+    strcpy(obName,filename);
+    strcat(obName,OBJECT);
+    lineNumber = FIRST_LINE;
+    lineNum = &lineNumber;
+    
+    f = fopen(obName, "w");
     if (!f)
     {
-        fprintf(stderr, "the file %s cannot be written to", filename);
-        exit(1);
+        printf("the file %s cannot be written to", obName);
     }
-    write_file(f, my_f);
+    else
+    {
+        My_Line *curr;
+        
+        curr = my_f->firstLine;
+        while (curr)
+        {
+            writeObjLine(f, curr, symbols, lineNum);
+            curr++;
+        }
+        
+        fclose(f);
+    }
+}
+
+void makeExtern(MY_FILE *my_f, SymbolList *symbols, char *filename)
+{
+    FILE *f;
+    char exName[strlen(filename)+strlen(EXTERNALS)];
+    unsigned int *lineNum,lineNumber;
+    
+    strcpy(exName,filename);
+    strcat(exName,EXTERNALS);
+    lineNumber = FIRST_LINE;
+    lineNum = &lineNumber;
+    
+    f = fopen(exName, "w");
+    if (!f)
+    {
+        printf("the file %s cannot be written to", exName);
+    }
+    else
+    {
+        My_Line *curr;
+        
+        curr = my_f->firstLine;
+        while (curr)
+        {
+            writeExLine(f, curr, symbols, lineNum);
+            curr++;
+        }
+        
+        fclose(f);
+    }
+}
+
+void makeEntry(MY_FILE *my_f, SymbolList *symbols, char *filename)
+{
+    FILE *f;
+    char enName[strlen(filename)+strlen(ENTRIES)];
+    
+    strcpy(enName,filename);
+    strcat(enName,ENTRIES);
+    
+    f = fopen(enName, "w");
+    if (!f)
+    {
+        printf("the file %s cannot be written to", enName);
+    }
+    else
+    {
+        My_Line *curr;
+        
+        curr = my_f->firstLine;
+        while (curr)
+        {
+            writeEnLine(f, curr, symbols);
+            curr++;
+        }
+        
+        fclose(f);
+    }
 }
