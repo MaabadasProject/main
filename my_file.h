@@ -5,7 +5,9 @@ My_Line * new_line(char *);
 
 My_File * new_file (FILE *);
 
-void getWord (char **, char *);
+char * getWord (char *, char *);
+
+void skip_spaces(char **line);
 
 int set_as_command(My_Line *, char *, char *);
 
@@ -35,7 +37,7 @@ int fit (int, parameter *, int);
 
 int sum (int[],int);
 
-void free_file(My_File);
+void free_file(My_File *);
 
 void free_line(My_Line *);
 

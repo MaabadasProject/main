@@ -82,11 +82,11 @@ typedef struct
 typedef union {
     unsigned short int value;
     struct {
-        int mode   :2; /* E/R/A */
-        int target :2; /* target operand Addressing method*/
-        int source :2; /* source operand Addressing method*/
-        int opcode :4;
-        int group  :2; /* the amount of operands for this instruction */
+        unsigned int mode   :2; /* E/R/A */
+        unsigned int target :2; /* target operand Addressing method*/
+        unsigned int source :2; /* source operand Addressing method*/
+        unsigned int opcode :4;
+        unsigned int group  :2; /* the amount of operands for this instruction */
     } bits;
 }instr_h; /* the instruction header - the first word of each instruction */
 

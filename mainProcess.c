@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
         {
             if ((currAssemblyFile = fopen(argv[i], "r")))
             {
-                processFile(currAssemblyFile, argv[i]);
+                processFile(currAssemblyFile, fileName);
                 fclose(currAssemblyFile);
             }
             else
@@ -112,14 +112,14 @@ void processFile (FILE *asFile, char *fileName)
 {
     SymbolList *symbols;
     My_File *file;
-    int undeclared;
+    int undeclared = 0;
     
     file = new_file(asFile);
-    undeclared = 0;
     
     if (file->makeOb == MAKE)
     {
-        if ((symbols = symbols_list(file)))
+        symbols = symbols_list(file);
+        if (symbols)
         {
             undeclared = check_direct_variables(file,symbols);
             if (undeclared == -1)
@@ -128,13 +128,13 @@ void processFile (FILE *asFile, char *fileName)
             }
             else if (!undeclared)
             {
-                makeObject(file,symbols,fileName);
+                makeObject(file, symbols, fileName);
                 
                 if (file->makeExt == MAKE)
-                    makeExtern(file,symbols,fileName);
+                    makeExtern(file, symbols, fileName);
                 
                 if (file->makeEnt == MAKE)
-                    makeEntry(file,symbols,fileName);
+                    makeEntry(file, symbols, fileName);
             }
             else
             {
@@ -242,7 +242,7 @@ int check_direct_variables (My_File *file, SymbolList *list)
                 *(second-1) = ',';
             }
         }
-        curr++;
+        curr = curr->next;
     }
     
     return undeclared;
@@ -251,15 +251,18 @@ int check_direct_variables (My_File *file, SymbolList *list)
 void printErrors(My_File *file)
 {
     My_Line *curr;
+    int lineNum;
     
     curr = file->firstLine;
+    lineNum = 1;
     
     while (curr)
     {
         if (curr->kind == Error)
         {
-            fprintf(stderr,"error: %s\n",curr->statement.error);
+            fprintf(stderr,"line %d - error: %s\n", lineNum, curr->statement.error);
         }
         curr = curr->next;
+        lineNum++;
     }
 }

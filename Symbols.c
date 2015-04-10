@@ -16,7 +16,7 @@ SymbolList * symbols_list(My_File *file)
     
     for (currLine = file->firstLine; currLine; currLine = currLine->next)
     {
-        if (currLine->label)
+        if (currLine->label[0])
         {
             if (!search_list(list,currLine->label))
             {
@@ -25,7 +25,6 @@ SymbolList * symbols_list(My_File *file)
             }
             else
             {
-                list->head = dummy;
                 free_list(list);
                 return NULL;
             }
@@ -70,7 +69,7 @@ int increaseBy (My_Line *line)
         if (line->statement.request.kind == DATA)
             return line->statement.request.data.nums.len;
         else if (line->statement.request.kind == STRING)
-            return strlen(line->statement.request.data.str) + 1;
+            return (int)strlen(line->statement.request.data.str) + 1;
         else
             return 0;
     }
@@ -105,12 +104,10 @@ SymbolList * new_symbolList()
 }
 
 /* returns a pointer to a new Symbol created using malloc */
-/* symName should by shorter than 31 chars */
 Symbol * new_symbol(char *symName, int symValue)
 {
-    /* TODO: write when it's time */
 	Symbol *p;
-	p = (Symbol *) malloc (sizeof(Symbol *));
+	p = (Symbol *) malloc (sizeof(Symbol));
     p->name = symName;
 	p->value = symValue;
 	p->next = NULL;
