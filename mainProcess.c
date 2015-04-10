@@ -2,7 +2,7 @@
 #include "mainProcess.h"
 
 char *opcodes[NUMBER_OF_COMMANDS] =
-{ "mov"
+    { "mov"
     , "cmp"
     , "add"
     , "sub"
@@ -20,8 +20,8 @@ char *opcodes[NUMBER_OF_COMMANDS] =
     , "stop"};
 
 int legal_adressing_methods[NUMBER_OF_COMMANDS][2][NUMBER_OF_ADDRESSING_METHODS] =
-/*source  ||  destination*/
-{{{1,1,1,1},	{0,1,0,1}},
+    /*source  ||  destination*/
+    {{{1,1,1,1},	{0,1,0,1}},
     {{1,1,1,1},		{1,1,1,1}},
     {{1,1,1,1},		{0,1,0,1}},
     {{1,1,1,1},		{0,1,0,1}},
@@ -39,13 +39,13 @@ int legal_adressing_methods[NUMBER_OF_COMMANDS][2][NUMBER_OF_ADDRESSING_METHODS]
     {{0,0,0,0},		{0,0,0,0}}};
 
 char *requests[NUMBER_OF_REQUESTS] =
-{ ".data"
+    { ".data"
     , ".string"
     , ".entry"
     , ".extern"};
 
 char *registers[NUMBER_OF_REGISTERS] =
-{ "r0"
+    { "r0"
     , "r1"
     , "r2"
     , "r3"
@@ -112,14 +112,14 @@ void processFile (FILE *asFile, char *fileName)
 {
     SymbolList *symbols;
     My_File *file;
-    int undeclared;
+    int undeclared = 0;
     
     file = new_file(asFile);
-    undeclared = 0;
     
     if (file->makeOb == MAKE)
     {
-        if ((symbols = symbols_list(file)))
+        symbols = symbols_list(file);
+        if (symbols)
         {
             undeclared = check_direct_variables(file,symbols);
             if (undeclared == -1)
@@ -128,13 +128,13 @@ void processFile (FILE *asFile, char *fileName)
             }
             else if (!undeclared)
             {
-                makeObject(file,symbols,fileName);
+                makeObject(file, symbols, fileName);
                 
                 if (file->makeExt == MAKE)
-                    makeExtern(file,symbols,fileName);
+                    makeExtern(file, symbols, fileName);
                 
                 if (file->makeEnt == MAKE)
-                    makeEntry(file,symbols,fileName);
+                    makeEntry(file, symbols, fileName);
             }
             else
             {
@@ -242,7 +242,7 @@ int check_direct_variables (My_File *file, SymbolList *list)
                 *(second-1) = ',';
             }
         }
-        curr++;
+        curr = curr->next;
     }
     
     return undeclared;

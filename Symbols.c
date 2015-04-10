@@ -16,7 +16,7 @@ SymbolList * symbols_list(My_File *file)
     
     for (currLine = file->firstLine; currLine; currLine = currLine->next)
     {
-        if (currLine->label)
+        if (currLine->label[0])
         {
             if (!search_list(list,currLine->label))
             {
@@ -25,7 +25,6 @@ SymbolList * symbols_list(My_File *file)
             }
             else
             {
-                list->head = dummy;
                 free_list(list);
                 return NULL;
             }
@@ -105,25 +104,24 @@ SymbolList * new_symbolList()
 }
 
 /* returns a pointer to a new Symbol created using malloc */
-/* symName should by shorter than 31 chars */
 Symbol * new_symbol(char *symName, int symValue)
 {
-    Symbol *p;
-    p = (Symbol *) malloc (sizeof(Symbol *));
+	Symbol *p;
+	p = (Symbol *) malloc (sizeof(Symbol));
     p->name = symName;
-    p->value = symValue;
-    p->next = NULL;
-    return p;
+	p->value = symValue;
+	p->next = NULL;
+	return p;
 }
 
 Symbol *search_list(SymbolList *list, char *name)
 {
-    Symbol *curr = list->head;
-    while (curr)
-    {
-        if(!strcmp(curr->name, name))
-            return curr;
-        curr = curr->next;
-    }
-    return NULL;
+	Symbol *curr = list->head;
+	while (curr)
+	{
+		if(!strcmp(curr->name, name))
+			return curr;
+		curr = curr->next;
+	}
+	return NULL;
 }

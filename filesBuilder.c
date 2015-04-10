@@ -10,14 +10,14 @@ int get_header(My_Line *line)
     amount_of_parameters = 0;
     
     h.bits.mode = A;
-    if(line->statement.command.p1)
+    if(line->statement.command.p1->kind != NONE)
     {
-        h.bits.target = line->statement.command.p1->kind;
+        h.bits.source = line->statement.command.p1->kind;
         amount_of_parameters++;
     }
-    if(line->statement.command.p2)
+    if(line->statement.command.p2->kind != NONE)
     {
-        h.bits.source = line->statement.command.p2->kind;
+        h.bits.target = line->statement.command.p2->kind;
         amount_of_parameters++;
     }
     h.bits.opcode = line->statement.command.opcode;
@@ -101,7 +101,7 @@ void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
                 case STRING:
                 {
                     char *currChar = line->statement.request.data.str;
-                    while (currChar)
+                    while (*currChar)
                     {
                         fprintf(f,"%3X\t\t%.3X\n", *lineNum, (unsigned int)(*currChar));
                         currChar++;
@@ -124,16 +124,15 @@ void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
         case Command:
         {
             fprintf(f, "%3X\t\t%.3X\n", *lineNum, get_header(line));
-            (*lineNum)++;
-            if (line->statement.command.p1)
+            if (line->statement.command.p1->kind != NONE)
             {
                 unsigned short valP1, valP2;
                 valP1 = get_parameter(line->statement.command.p1,symbols,FIRST,*lineNum);
                 valP2 = get_parameter(line->statement.command.p2,symbols,SECOND,*lineNum);
+                (*lineNum)++;
                 if (line->statement.command.p1->kind == REGISTER && line->statement.command.p2->kind == REGISTER)
                 {
                     fprintf(f,"%3X\t\t%.3X\n", *lineNum, (valP1 + valP2));
-                    (*lineNum)++;
                 }
                 else
                 {
@@ -141,17 +140,17 @@ void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
                     (*lineNum)++;
                     
                     fprintf(f,"%3X\t\t%.3X\n", *lineNum, valP2);
-                    (*lineNum)++;
                 }
-                
+                    
             }
-            else if (line->statement.command.p2)
+            else if (line->statement.command.p2->kind != NONE)
             {
                 unsigned short valP2;
                 valP2 = get_parameter(line->statement.command.p2,symbols,SECOND,*lineNum);
-                fprintf(f,"%3X\t\t%.3X\n", *lineNum, valP2);
                 (*lineNum)++;
+                fprintf(f,"%3X\t\t%.3X\n", *lineNum, valP2);
             }
+            (*lineNum)++;
         }
         case Error:
             break;
@@ -214,7 +213,7 @@ void writeEnLine (FILE *f, My_Line *line, SymbolList *symbols)
 void makeObject(My_File *my_f, SymbolList *symbols, char *filename)
 {
     FILE *f;
-    char obName[strlen(filename)+strlen(OBJECT)];
+    char obName[strlen(filename)+strlen(OBJECT)+1];
     unsigned int *lineNum,lineNumber;
     
     strcpy(obName,filename);
@@ -235,7 +234,7 @@ void makeObject(My_File *my_f, SymbolList *symbols, char *filename)
         while (curr)
         {
             writeObjLine(f, curr, symbols, lineNum);
-            curr++;
+            curr = curr->next;
         }
         
         fclose(f);
@@ -245,7 +244,7 @@ void makeObject(My_File *my_f, SymbolList *symbols, char *filename)
 void makeExtern(My_File *my_f, SymbolList *symbols, char *filename)
 {
     FILE *f;
-    char exName[strlen(filename)+strlen(EXTERNALS)];
+    char exName[strlen(filename)+strlen(EXTERNALS)+1];
     unsigned int *lineNum,lineNumber;
     
     strcpy(exName,filename);
@@ -266,7 +265,7 @@ void makeExtern(My_File *my_f, SymbolList *symbols, char *filename)
         while (curr)
         {
             writeExLine(f, curr, symbols, lineNum);
-            curr++;
+            curr = curr->next;
         }
         
         fclose(f);
@@ -276,7 +275,7 @@ void makeExtern(My_File *my_f, SymbolList *symbols, char *filename)
 void makeEntry(My_File *my_f, SymbolList *symbols, char *filename)
 {
     FILE *f;
-    char enName[strlen(filename)+strlen(ENTRIES)];
+    char enName[strlen(filename)+strlen(ENTRIES)+1];
     
     strcpy(enName,filename);
     strcat(enName,ENTRIES);
@@ -294,7 +293,7 @@ void makeEntry(My_File *my_f, SymbolList *symbols, char *filename)
         while (curr)
         {
             writeEnLine(f, curr, symbols);
-            curr++;
+            curr = curr->next;
         }
         
         fclose(f);
