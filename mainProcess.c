@@ -260,7 +260,7 @@ void printErrors(My_File *file)
     {
         if (curr->kind == Error)
         {
-            fprintf(stderr,"line %d - error: %s\n", lineNum, curr->statement.error);
+            fprintf(stderr,"line %d - error: %s.\n", lineNum, curr->statement.error);
         }
         curr = curr->next;
         lineNum++;

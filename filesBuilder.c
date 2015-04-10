@@ -214,12 +214,12 @@ void makeObject(My_File *my_f, SymbolList *symbols, char *filename)
 {
     FILE *f;
     char obName[strlen(filename)+strlen(OBJECT)+1];
-    unsigned int *lineNum,lineNumber;
+    unsigned int lineNumber;
     
     strcpy(obName,filename);
     strcat(obName,OBJECT);
+    obName[strlen(filename)+strlen(OBJECT)] = '\0';
     lineNumber = FIRST_LINE;
-    lineNum = &lineNumber;
     
     f = fopen(obName, "w");
     if (!f)
@@ -233,7 +233,7 @@ void makeObject(My_File *my_f, SymbolList *symbols, char *filename)
         curr = my_f->firstLine;
         while (curr)
         {
-            writeObjLine(f, curr, symbols, lineNum);
+            writeObjLine(f, curr, symbols, &lineNumber);
             curr = curr->next;
         }
         
@@ -245,12 +245,12 @@ void makeExtern(My_File *my_f, SymbolList *symbols, char *filename)
 {
     FILE *f;
     char exName[strlen(filename)+strlen(EXTERNALS)+1];
-    unsigned int *lineNum,lineNumber;
+    unsigned int lineNumber;
     
     strcpy(exName,filename);
     strcat(exName,EXTERNALS);
+    exName[strlen(filename)+strlen(EXTERNALS)] = '\0';
     lineNumber = FIRST_LINE;
-    lineNum = &lineNumber;
     
     f = fopen(exName, "w");
     if (!f)
@@ -264,7 +264,7 @@ void makeExtern(My_File *my_f, SymbolList *symbols, char *filename)
         curr = my_f->firstLine;
         while (curr)
         {
-            writeExLine(f, curr, symbols, lineNum);
+            writeExLine(f, curr, symbols, &lineNumber);
             curr = curr->next;
         }
         
@@ -279,6 +279,7 @@ void makeEntry(My_File *my_f, SymbolList *symbols, char *filename)
     
     strcpy(enName,filename);
     strcat(enName,ENTRIES);
+    enName[strlen(filename)+strlen(ENTRIES)] = '\0';
     
     f = fopen(enName, "w");
     if (!f)
