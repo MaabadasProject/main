@@ -96,7 +96,10 @@ My_Line * new_line (char line[])
     }
     else
     {
-        strcpy(err, "couldn't recognize first word");
+        if (myline->label[0])
+            strcpy(err, "no such command or request");
+        else
+            strcpy(err, "couldn't recognize first word");
         foundError = 1;
     }
     
@@ -287,9 +290,55 @@ int set_as_command(My_Line *myline, char *line, char err[])
     }
     else
     {
+        if (sum(legal_adressing_methods[myline->statement.command.opcode][SECOND],NUMBER_OF_ADDRESSING_METHODS) == 0)
+        {
+            strcpy(err, "too many parameters");
+        }
+        else if (sum(legal_adressing_methods[myline->statement.command.opcode][FIRST],NUMBER_OF_ADDRESSING_METHODS) == 0)
+        {
+            if (p1->kind != NONE)
+            {
+                strcpy(err, "too many parameters");
+            }
+            else if (p2->kind == NONE)
+            {
+                strcpy(err, "the parameter is missing");
+            }
+            else
+            {
+                strcpy(err, "the parameter doesn't fit the command");
+            }
+        }
+        else
+        {
+            if (p2->kind == NONE)
+            {
+                strcpy(err, "both parameters are missing");
+            }
+            else if (p1->kind == NONE)
+            {
+                strcpy(err, "second parameter is missing");
+            }
+            else
+            {
+                if (fit(myline->statement.command.opcode,p1,FIRST))
+                {
+                    strcpy(err, "second parameter doesn't fit the command");
+                }
+                else if (fit(myline->statement.command.opcode,p2,SECOND))
+                {
+                    strcpy(err, "first parameter doesn't fit the command");
+                }
+                else
+                {
+                    strcpy(err, "both parameters don't fit the command");
+                }
+
+            }
+        }
+        
         free_parameter(p1);
         free_parameter(p2);
-        strcpy(err, "parameters doesn't fit command");
         return 1;
     }
 }
@@ -301,7 +350,20 @@ int set_as_request(My_Line *myline, char *line, char err[])
     
     if (len == -1)
     {
-        strcpy(err,"illegal request parameter");
+        switch (myline->statement.request.kind) {
+            case STRING:
+                strcpy(err,"illegal .string parameter");
+                break;
+            case DATA:
+                strcpy(err,"illegal .data parameter");
+                break;
+            case EXTERN:
+                strcpy(err,"illegal .extern parameter");
+                break;
+            case ENTRY:
+                strcpy(err,"illegal .entry parameter");
+                break;
+        }
         return 1;
     }
     
@@ -739,15 +801,18 @@ int param_length (char *param, int kind)
     return count;
 }
 
-int fit (int command, parameter *param, int numberOfParameter)
+int fit (int command, parameter *param, int position)
 {
     if (param->kind == NONE)
     {
-        return (sum(legal_adressing_methods[command][numberOfParameter],NUMBER_OF_ADDRESSING_METHODS) == 0);
+        if (sum(legal_adressing_methods[command][position],NUMBER_OF_ADDRESSING_METHODS) == 0)
+            return 1;
+        else
+            return 0;
     }
     else
     {
-        return legal_adressing_methods[command][numberOfParameter][param->kind];
+        return legal_adressing_methods[command][position][param->kind];
     }
 }
 
