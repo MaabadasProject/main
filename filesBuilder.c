@@ -1,6 +1,103 @@
 
+/* this file creates the output files */
+
 #include "filesBuilder.h"
 
+/* makes the .ob file out of the My_File list */
+void makeObject(My_File *my_f, SymbolList *symbols, char *filename)
+{
+    FILE *f;
+    char obName[strlen(filename)+strlen(OBJECT)+1];
+    unsigned int lineNumber;
+    
+    strcpy(obName,filename);
+    strcat(obName,OBJECT);
+    obName[strlen(filename)+strlen(OBJECT)] = '\0';
+    lineNumber = FIRST_LINE;
+    
+    f = fopen(obName, "w");
+    if (!f)
+    {
+        fprintf(stderr,"error: the file %s cannot be written to.\n", obName);
+    }
+    else
+    {
+        My_Line *curr;
+        
+        curr = my_f->firstLine;
+        while (curr)
+        {
+            writeObjLine(f, curr, symbols, &lineNumber);
+            curr = curr->next;
+        }
+        
+        fclose(f);
+    }
+}
+
+/* makes the .ext file out of the My_File list */
+void makeExtern(My_File *my_f, SymbolList *symbols, char *filename)
+{
+    FILE *f;
+    char exName[strlen(filename)+strlen(EXTERNALS)+1];
+    unsigned int lineNumber;
+    
+    strcpy(exName,filename);
+    strcat(exName,EXTERNALS);
+    exName[strlen(filename)+strlen(EXTERNALS)] = '\0';
+    lineNumber = FIRST_LINE;
+    
+    f = fopen(exName, "w");
+    if (!f)
+    {
+        fprintf(stderr,"error: the file %s cannot be written to.\n", exName);
+    }
+    else
+    {
+        My_Line *curr;
+        
+        curr = my_f->firstLine;
+        while (curr)
+        {
+            writeExLine(f, curr, symbols, &lineNumber);
+            curr = curr->next;
+        }
+        
+        fclose(f);
+    }
+}
+
+/* makes the .ent file out of the My_File list */
+void makeEntry(My_File *my_f, SymbolList *symbols, char *filename)
+{
+    FILE *f;
+    char enName[strlen(filename)+strlen(ENTRIES)+1];
+    
+    strcpy(enName,filename);
+    strcat(enName,ENTRIES);
+    enName[strlen(filename)+strlen(ENTRIES)] = '\0';
+    
+    f = fopen(enName, "w");
+    if (!f)
+    {
+        fprintf(stderr,"error: the file %s cannot be written to.\n", enName);
+    }
+    else
+    {
+        My_Line *curr;
+        
+        curr = my_f->firstLine;
+        while (curr)
+        {
+            writeEnLine(f, curr, symbols);
+            curr = curr->next;
+        }
+        
+        fclose(f);
+    }
+}
+
+/* return the value of the command header */
 int get_header(My_Line *line)
 {
     instr_h h;
@@ -10,12 +107,12 @@ int get_header(My_Line *line)
     amount_of_parameters = 0;
     
     h.bits.mode = A;
-    if(line->statement.command.p1->kind != NONE)
+    if(line->statement.command.p1->kind != EMPTY)
     {
         h.bits.source = line->statement.command.p1->kind;
         amount_of_parameters++;
     }
-    if(line->statement.command.p2->kind != NONE)
+    if(line->statement.command.p2->kind != EMPTY)
     {
         h.bits.target = line->statement.command.p2->kind;
         amount_of_parameters++;
@@ -26,7 +123,9 @@ int get_header(My_Line *line)
     return h.value;
 }
 
-/* returns the extra word that the addressing method needs. */
+/* returns the value of the parameter it gets. */
+/* position should be 0 for first and 1 for second */
+/* commandLineNum if the line number of the command */
 unsigned short get_parameter(parameter *p, SymbolList  *symbols, int position, unsigned int commandLineNum)
 {
     unsigned short int value;
@@ -79,19 +178,20 @@ unsigned short get_parameter(parameter *p, SymbolList  *symbols, int position, u
                 value <<= 5;
             value += A;
             break;
-        case ERROR:
         case NONE:
+        case EMPTY:
             break;
     }
     
     return value;
 }
 
+/* prints in f the curr line value. f is an .ob file */
 void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lineNum)
 {
     switch(line->kind)
     {
-        case Request:
+        case REQUEST:
         {
             switch(line->statement.request.kind)
             {
@@ -121,10 +221,10 @@ void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
             }
         }
             break;
-        case Command:
+        case COMMAND:
         {
             fprintf(f, "%3X\t\t%.3X\n", *lineNum, get_header(line));
-            if (line->statement.command.p1->kind != NONE)
+            if (line->statement.command.p1->kind != EMPTY)
             {
                 unsigned short valP1, valP2;
                 valP1 = get_parameter(line->statement.command.p1,symbols,FIRST,*lineNum);
@@ -143,7 +243,7 @@ void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
                 }
                     
             }
-            else if (line->statement.command.p2->kind != NONE)
+            else if (line->statement.command.p2->kind != EMPTY)
             {
                 unsigned short valP2;
                 valP2 = get_parameter(line->statement.command.p2,symbols,SECOND,*lineNum);
@@ -152,14 +252,17 @@ void writeObjLine(FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
             }
             (*lineNum)++;
         }
-        case Error:
+        case ERROR:
             break;
     }
 }
 
+/* if curr line (line) contains external variable, */
+/* prints in f the name of the variable and the line number (lineNum) */
+/* f is an .ext file */
 void writeExLine (FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lineNum)
 {
-    if (line->kind == Command)
+    if (line->kind == COMMAND)
     {
         Symbol *sym;
         (*lineNum)++;
@@ -170,7 +273,7 @@ void writeExLine (FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
             if (sym->value == 0)
                 fprintf(f,"%s\t\t%3X\n",sym->name,*lineNum);
         }
-        if (line->statement.command.p1->kind != NONE)
+        if (line->statement.command.p1->kind != EMPTY)
             (*lineNum)++;
         
         if (line->statement.command.p2->kind == DIRECT)
@@ -179,7 +282,7 @@ void writeExLine (FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
             if (sym->value == 0)
                 fprintf(f,"%s\t\t%3X\n",sym->name,*lineNum);
         }
-        if (line->statement.command.p2->kind != NONE)
+        if (line->statement.command.p2->kind != EMPTY)
             (*lineNum)++;
         
         if (line->statement.command.p1->kind == REGISTER && line->statement.command.p2->kind == REGISTER)
@@ -194,9 +297,12 @@ void writeExLine (FILE *f, My_Line *line, SymbolList *symbols, unsigned int *lin
     }
 }
 
+/* if the curr line is a request line from type entry, */
+/* prints the name of the variable and its value in f */
+/* f is an .ent file */
 void writeEnLine (FILE *f, My_Line *line, SymbolList *symbols)
 {
-    if (line->kind == Request && line->statement.request.kind == ENTRY)
+    if (line->kind == REQUEST && line->statement.request.kind == ENTRY)
     {
         Symbol *sym = search_list(symbols,line->statement.request.data.str);
         if (sym)
@@ -207,96 +313,5 @@ void writeEnLine (FILE *f, My_Line *line, SymbolList *symbols)
         {
             fprintf(stderr,"error: variable %s wasn't declared.\n",line->statement.request.data.str);
         }
-    }
-}
-
-void makeObject(My_File *my_f, SymbolList *symbols, char *filename)
-{
-    FILE *f;
-    char obName[strlen(filename)+strlen(OBJECT)+1];
-    unsigned int lineNumber;
-    
-    strcpy(obName,filename);
-    strcat(obName,OBJECT);
-    obName[strlen(filename)+strlen(OBJECT)] = '\0';
-    lineNumber = FIRST_LINE;
-    
-    f = fopen(obName, "w");
-    if (!f)
-    {
-        fprintf(stderr,"error: the file %s cannot be written to.\n", obName);
-    }
-    else
-    {
-        My_Line *curr;
-        
-        curr = my_f->firstLine;
-        while (curr)
-        {
-            writeObjLine(f, curr, symbols, &lineNumber);
-            curr = curr->next;
-        }
-        
-        fclose(f);
-    }
-}
-
-void makeExtern(My_File *my_f, SymbolList *symbols, char *filename)
-{
-    FILE *f;
-    char exName[strlen(filename)+strlen(EXTERNALS)+1];
-    unsigned int lineNumber;
-    
-    strcpy(exName,filename);
-    strcat(exName,EXTERNALS);
-    exName[strlen(filename)+strlen(EXTERNALS)] = '\0';
-    lineNumber = FIRST_LINE;
-    
-    f = fopen(exName, "w");
-    if (!f)
-    {
-        fprintf(stderr,"error: the file %s cannot be written to.\n", exName);
-    }
-    else
-    {
-        My_Line *curr;
-        
-        curr = my_f->firstLine;
-        while (curr)
-        {
-            writeExLine(f, curr, symbols, &lineNumber);
-            curr = curr->next;
-        }
-        
-        fclose(f);
-    }
-}
-
-void makeEntry(My_File *my_f, SymbolList *symbols, char *filename)
-{
-    FILE *f;
-    char enName[strlen(filename)+strlen(ENTRIES)+1];
-    
-    strcpy(enName,filename);
-    strcat(enName,ENTRIES);
-    enName[strlen(filename)+strlen(ENTRIES)] = '\0';
-    
-    f = fopen(enName, "w");
-    if (!f)
-    {
-        fprintf(stderr,"error: the file %s cannot be written to.\n", enName);
-    }
-    else
-    {
-        My_Line *curr;
-        
-        curr = my_f->firstLine;
-        while (curr)
-        {
-            writeEnLine(f, curr, symbols);
-            curr = curr->next;
-        }
-        
-        fclose(f);
     }
 }

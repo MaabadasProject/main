@@ -1,8 +1,8 @@
-.entry	LOOP
-.entry	LENGTH
+.entry LOOP
+.entry LENGTH
 .extern	L3
 .extern	W
-MAIN:	mov	~(K,END),W
+MAIN:	mov ~(K,END),W
 		add	r2,STR
 LOOP:	jmp	L3
 		prn	#-5

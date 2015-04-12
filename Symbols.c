@@ -1,6 +1,10 @@
 
+/* this file contains functions for making a symbols list,
+    and also to search a smbol in it */
+
 #include "Symbols.h"
 
+/* returns a SymbolList contains the symbols in the file */
 SymbolList * symbols_list(My_File *file)
 {
     SymbolList *list;
@@ -29,7 +33,7 @@ SymbolList * symbols_list(My_File *file)
                 return NULL;
             }
         }
-        else if (currLine->kind == Request && currLine->statement.request.kind == EXTERN)
+        else if (currLine->kind == REQUEST && currLine->statement.request.kind == EXTERN)
         {
             if (!search_list(list,currLine->statement.request.data.str))
             {
@@ -54,17 +58,17 @@ SymbolList * symbols_list(My_File *file)
 /* returns the number of lines the line will be in the object file */
 int increaseBy (My_Line *line)
 {
-    if (line->kind == Command)
+    if (line->kind == COMMAND)
     {
         if (line->statement.command.p1->kind == REGISTER && line->statement.command.p2->kind == REGISTER)
             return 2;
-        if (line->statement.command.p1->kind != NONE)
+        if (line->statement.command.p1->kind != EMPTY)
             return 3;
-        if (line->statement.command.p2->kind != NONE)
+        if (line->statement.command.p2->kind != EMPTY)
             return 2;
         return 1;
     }
-    else /* if line->kind == Request */
+    else /* if line->kind == REQUEST */
     {
         if (line->statement.request.kind == DATA)
             return line->statement.request.data.nums.len;
@@ -75,7 +79,7 @@ int increaseBy (My_Line *line)
     }
 }
 
-/* this will free the symbols list */
+/* frees the symbols list */
 void free_list (SymbolList *list)
 {
     if (list->head)
@@ -99,6 +103,13 @@ SymbolList * new_symbolList()
 {
     SymbolList *list;
     list = (SymbolList *)malloc(sizeof(SymbolList));
+    
+    if (list == NULL)
+    {
+        fprintf(stderr, "error: out of memory\n");
+        exit(1);
+    }
+    
     list->head = NULL;
     return list;
 }
@@ -107,13 +118,23 @@ SymbolList * new_symbolList()
 Symbol * new_symbol(char *symName, int symValue)
 {
 	Symbol *p;
-	p = (Symbol *) malloc (sizeof(Symbol));
+    p = (Symbol *) malloc (sizeof(Symbol));
+    
+    if (p == NULL)
+    {
+        fprintf(stderr, "error: out of memory\n");
+        exit(1);
+    }
+    
     p->name = symName;
 	p->value = symValue;
 	p->next = NULL;
 	return p;
 }
 
+/* search the symbol named "name" in SymbolList "list"
+   returns pointer to the symbol if it was found.
+   returns NULL if not. */
 Symbol *search_list(SymbolList *list, char *name)
 {
 	Symbol *curr = list->head;
