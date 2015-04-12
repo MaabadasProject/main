@@ -1,6 +1,10 @@
 
+/* this file contains the main function */
+/* errors messeges will be printed to stderr */
+
 #include "mainProcess.h"
 
+/* four global arrays for testing the correction of the input */
 char *opcodes[NUMBER_OF_COMMANDS] =
     { "mov"
     , "cmp"
@@ -54,6 +58,8 @@ char *registers[NUMBER_OF_REGISTERS] =
     , "r6"
     , "r7"};
 
+/* the main main function. */
+/*opens files and process them with processFile */
 int main(int argc, char *argv[])
 {
     int i;
@@ -71,7 +77,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                fprintf(stderr,"error: the file %s could not be found.\n",fileName);
+                fprintf(stderr,"error: the file %s could not be found.\n",argv[i]);
             }
             free(fileName);
         }
@@ -83,6 +89,8 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+/* returns the name of the file without the ending if it is an .as file */
+/* returns NULL if if it is not an .as file */
 char * assemblyFile(char *file)
 {
     int length;
@@ -99,6 +107,13 @@ char * assemblyFile(char *file)
     if (!(strcmp(curr,ASSEMBLY)))
     {
         name = (char *)malloc(length+1);
+        
+        if (name == NULL)
+        {
+            fprintf(stderr, "error: out of memory\n");
+            exit(1);
+        }
+        
         strncpy(name,file,length);
         name[length] = '\0';
         return name;
@@ -138,7 +153,10 @@ void processFile (FILE *asFile, char *fileName)
             }
             else
             {
-                fprintf(stderr,"error: %d symbols were not declared.\n",undeclared);
+                if (undeclared == 1)
+                    fprintf(stderr,"error: one symbol was not declared.\n");
+                else
+                    fprintf(stderr,"error: %d symbols were not declared.\n",undeclared);
             }
             free_list(symbols);
         }
@@ -168,7 +186,7 @@ int check_direct_variables (My_File *file, SymbolList *list)
     
     while (curr)
     {
-        if (curr->kind == Command)
+        if (curr->kind == COMMAND)
         {
             if (curr->statement.command.p1->kind == DIRECT)
             {
@@ -248,6 +266,8 @@ int check_direct_variables (My_File *file, SymbolList *list)
     return undeclared;
 }
 
+/* if the file contains errors, this function will be called. */
+/* prints all the errors in the file to stderr */
 void printErrors(My_File *file)
 {
     My_Line *curr;
@@ -258,9 +278,9 @@ void printErrors(My_File *file)
     
     while (curr)
     {
-        if (curr->kind == Error)
+        if (curr->kind == ERROR)
         {
-            fprintf(stderr,"line %d - error: %s.\n", lineNum, curr->statement.error);
+            fprintf(stderr,"error: line %d - %s.\n", lineNum, curr->statement.error);
         }
         curr = curr->next;
         lineNum++;

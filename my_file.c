@@ -1,7 +1,10 @@
 
+/* this file makes a linked list named My_File out of the .as file.
+   the My_File is a linked list of My_Line */
+
 #include "my_file.h"
 
-
+/* makes the full My_File */
 My_File * new_file (FILE *asFile)
 {
     My_File *file;
@@ -10,51 +13,76 @@ My_File * new_file (FILE *asFile)
     
     
     file = (My_File *)malloc(sizeof(My_File));
+    
+    if (file == NULL)
+    {
+        fprintf(stderr, "error: out of memory\n");
+        exit(1);
+    }
+    
     file->firstLine = NULL;
     file->makeOb = MAKE;
-    file->makeExt = NOT;
-    file->makeEnt = NOT;
+    file->makeExt = DONT;
+    file->makeEnt = DONT;
     
     
     prev = NULL;
     while (fgets(str_line, MAX_LINE_LENGTH, asFile))
     {
         curr = new_line(str_line);
-        if (curr->kind == Request)
+        if (curr != NULL)
         {
-            if (curr->statement.request.kind == ENTRY)
-                file->makeEnt = MAKE;
-            else if (curr->statement.request.kind == EXTERN)
-                file->makeExt = MAKE;
-        }
-        else if (curr->kind == Error)
-        {
-            file->makeOb = NOT;
-        }
-        if (prev == NULL)
-        {
-            file->firstLine = curr;
-            prev = curr;
-        }
-        else
-        {
-            prev->next = curr;
-            prev = prev->next;
+            if (curr->kind == REQUEST)
+            {
+                if (curr->statement.request.kind == ENTRY)
+                    file->makeEnt = MAKE;
+                else if (curr->statement.request.kind == EXTERN)
+                    file->makeExt = MAKE;
+            }
+            else if (curr->kind == ERROR)
+            {
+                file->makeOb = DONT;
+            }
+            if (prev == NULL)
+            {
+                file->firstLine = curr;
+                prev = curr;
+            }
+            else
+            {
+                prev->next = curr;
+                prev = prev->next;
+            }
         }
     }
     
     return file;
 }
 
+/* makes an My_Line variable out line.
+   returns NULL if the line is a comment or empty,
+   if the line contains an error, sets the line as an error */
 My_Line * new_line (char line[])
 {
     char curr[MAX_WORD_LENGTH], *err;
     My_Line *myline;
     int foundError, stat;
     
+    if (is_empty(line))
+    {
+        return NULL;
+    }
+    
     foundError = 0;
     err = (char *)malloc(MAX_ERROR_LENGTH);
     myline = (My_Line *)malloc(sizeof(My_Line));
+    
+    if (err == NULL || myline == NULL)
+    {
+        fprintf(stderr, "error: out of memory\n");
+        exit(1);
+    }
+    
     line = getWord(line, curr);
     
     if (is_label(curr))
@@ -68,7 +96,7 @@ My_Line * new_line (char line[])
         if (is_keyword(curr, ':'))
         {
             strcpy(err, "label can't be a keyword");
-            myline->kind = Error;
+            myline->kind = ERROR;
             myline->statement.error = err;
             return myline;
         }
@@ -76,23 +104,17 @@ My_Line * new_line (char line[])
     
     if ((stat = is_command(curr,'\0')) != -1)
     {
-        myline->kind = Command;
+        myline->kind = COMMAND;
         myline->statement.command.opcode = stat;
         foundError = set_as_command(myline,line,err);
     }
     else if ((stat = is_request(curr,'\0')) != -1)
     {
-        myline->kind = Request;
+        myline->kind = REQUEST;
         myline->statement.request.kind = stat;
         if (stat == ENTRY || stat == EXTERN)
             myline->label[0] = '\0';
         foundError = set_as_request(myline,line,err);
-    }
-    else if (is_empty(curr)) /* if "line" is empty or comment */
-    {
-        free(myline);
-        free(err);
-        return NULL;
     }
     else
     {
@@ -106,13 +128,15 @@ My_Line * new_line (char line[])
     if (foundError)/* if contains an error */
     {
         myline->label[0] = '\0';
-        myline->kind = Error;
+        myline->kind = ERROR;
         myline->statement.error = err;
     }
     
     return myline;
 }
 
+/* finds the first word in line and puts it in "word" 
+   returns the new position in line - after the current word */
 char * getWord (char *line, char word[])
 {
     int i = 0;
@@ -137,12 +161,15 @@ char * getWord (char *line, char word[])
     return line;
 }
 
+/* skips spaces in line, if any */
 void skip_spaces(char **line)
 {
     while((*(*line)) == ' ' || (*(*line)) == '\t')
         (*line)++;
 }
 
+/* sets the command parameters and returns 0 if there is no errors in the line,
+   set an error messege in "err" and return 1 if there is an error in the line. */
 int set_as_command(My_Line *myline, char *line, char err[])
 {
     parameter *p1,*p2;
@@ -152,9 +179,22 @@ int set_as_command(My_Line *myline, char *line, char err[])
     p1 = (parameter *)malloc(sizeof(parameter));
     p2 = (parameter *)malloc(sizeof(parameter));
     
+    if (p1 == NULL || p2 == NULL)
+    {
+        fprintf(stderr, "error: out of memory\n");
+        exit(1);
+    }
+    
     p1->kind = addressingMethod(line);
     len = param_length(line,p1->kind);
     p1->value = (char *)malloc(len+1);
+    
+    if (p1->value == NULL)
+    {
+        fprintf(stderr, "error: out of memory\n");
+        exit(1);
+    }
+    
     p1->value[len] = '\0';
     
     switch (p1->kind) {
@@ -192,10 +232,10 @@ int set_as_command(My_Line *myline, char *line, char err[])
             skip_spaces(&line);
             line++;
             break;
-        case NONE:
+        case EMPTY:
             p1->value = NULL;
             break;
-        case ERROR:
+        case NONE:
             free_parameter(p1);
             free(p2);
             strcpy(err, "syntax problem with first parameter");
@@ -218,6 +258,13 @@ int set_as_command(My_Line *myline, char *line, char err[])
         p2->kind = addressingMethod(line);
         len = param_length(line,p2->kind);
         p2->value = (char *)malloc(len+1);
+        
+        if (p2->value == NULL)
+        {
+            fprintf(stderr, "error: out of memory\n");
+            exit(1);
+        }
+        
         p2->value[len] = '\0';
         
         switch (p2->kind) {
@@ -254,9 +301,9 @@ int set_as_command(My_Line *myline, char *line, char err[])
                 skip_spaces(&line);
                 line++;
                 break;
-            case NONE:
+            case EMPTY:
                 p2->value = NULL;
-            case ERROR:
+            case NONE:
                 free_parameter(p1);
                 free_parameter(p2);
                 strcpy(err, "syntax problem with second parameter");
@@ -275,7 +322,7 @@ int set_as_command(My_Line *myline, char *line, char err[])
     else
     {
         parameter *tmp;
-        p2->kind = NONE;
+        p2->kind = EMPTY;
         p2->value = NULL;
         tmp = p2;
         p2 = p1;
@@ -296,11 +343,11 @@ int set_as_command(My_Line *myline, char *line, char err[])
         }
         else if (sum(legal_adressing_methods[myline->statement.command.opcode][FIRST],NUMBER_OF_ADDRESSING_METHODS) == 0)
         {
-            if (p1->kind != NONE)
+            if (p1->kind != EMPTY)
             {
                 strcpy(err, "too many parameters");
             }
-            else if (p2->kind == NONE)
+            else if (p2->kind == EMPTY)
             {
                 strcpy(err, "the parameter is missing");
             }
@@ -311,11 +358,11 @@ int set_as_command(My_Line *myline, char *line, char err[])
         }
         else
         {
-            if (p2->kind == NONE)
+            if (p2->kind == EMPTY)
             {
                 strcpy(err, "both parameters are missing");
             }
-            else if (p1->kind == NONE)
+            else if (p1->kind == EMPTY)
             {
                 strcpy(err, "second parameter is missing");
             }
@@ -343,6 +390,8 @@ int set_as_command(My_Line *myline, char *line, char err[])
     }
 }
 
+/* sets the request parameters and returns 0 if there is no errors in the line,
+   set an error messege in "err" and return 1 if there is an error in the line. */
 int set_as_request(My_Line *myline, char *line, char err[])
 {
     int len,i,curr,sign;
@@ -371,6 +420,13 @@ int set_as_request(My_Line *myline, char *line, char err[])
         case DATA:
         {
             int *nums = (int *)malloc(sizeof(int) * len);
+            
+            if (nums == NULL)
+            {
+                fprintf(stderr, "error: out of memory\n");
+                exit(1);
+            }
+            
             for (i = 0; i < len; i++)
             {
                 skip_spaces(&line);
@@ -400,6 +456,13 @@ int set_as_request(My_Line *myline, char *line, char err[])
         case STRING:
         {
             char *string = (char *)malloc(len+1);
+            
+            if (string == NULL)
+            {
+                fprintf(stderr, "error: out of memory\n");
+                exit(1);
+            }
+            
             skip_spaces(&line);
             line++;
             strncpy(string,line,len);
@@ -411,6 +474,13 @@ int set_as_request(My_Line *myline, char *line, char err[])
         default:
         {
             char *symbol = (char *)malloc(len+1);
+            
+            if (symbol == NULL)
+            {
+                fprintf(stderr, "error: out of memory\n");
+                exit(1);
+            }
+            
             skip_spaces(&line);
             strncpy(symbol,line,len);
             symbol[len] = '\0';
@@ -421,6 +491,9 @@ int set_as_request(My_Line *myline, char *line, char err[])
     return 0;
 }
 
+/* checks the data for errors in case of request from type "kind".
+   returns the length of the data if no errors was found,
+   return -1 if found an error. */
 int data_check(char *param, int kind)
 {
     int len = 0;
@@ -505,12 +578,17 @@ int data_check(char *param, int kind)
     return -1;
 }
 
+/* returns non-zero value if the line is empty or a comment,
+   returns 0 if not */
 int is_empty (char *line)
 {
     skip_spaces(&line);
     return ((*line) == ';' || (*line) == '\n' || (*line) == '\0');
 }
 
+/* checks if the word is a request.
+   returns the index of the request if the word is a command,
+   returns -1 if not */
 int is_request (char *word, char del)
 {
     int i;
@@ -550,6 +628,9 @@ int is_request (char *word, char del)
     return -1;
 }
 
+/* returns 1 if the word is a label
+   returns 0 if not.
+   label must be followed by ':' */
 int is_label (char *word)
 {
     if (isalpha(*word))
@@ -574,11 +655,15 @@ int is_label (char *word)
     return 0;
 }
 
+/* returns non-zero value if the word is a keyword followed by "del",
+   and returns 0 if not */
 int is_keyword (char *word, char del)
 {
     return ((is_register(word,del) != -1) || (is_command(word,del) != -1));
 }
 
+/* returns non-zero value if the word is a command followed by "del",
+   and returns 0 if not */
 int is_command (char *word, char del)
 {
     int i;
@@ -626,6 +711,8 @@ int is_command (char *word, char del)
     return -1;
 }
 
+/* returns non-zero value if the word is a register followed by "del",
+   and returns 0 if not */
 int is_register (char *word, char del)
 {
     int i;
@@ -642,6 +729,8 @@ int is_register (char *word, char del)
     return -1;
 }
 
+/* returns 1 if the char is a delimiter from DELIMITERS in definitions,
+   and returns 0 if not */
 int is_delimiter (char ch)
 {
     char *curr = DELIMITERS;
@@ -659,6 +748,7 @@ int is_delimiter (char ch)
     return 0;
 }
 
+/* returns the addressing method of the string line */
 int addressingMethod (char *line)
 {
     if ((*line) == '#')
@@ -673,7 +763,7 @@ int addressingMethod (char *line)
             if ((*line) == '\n' || (*line) == '\0' || (*line) == ',')
                 return IMMEDIATE;
         }
-        return ERROR;
+        return NONE;
     }
     else if ((*line) == '~')
     {
@@ -686,7 +776,7 @@ int addressingMethod (char *line)
             {
                 if (!isalnum(*line))
                 {
-                    return ERROR;
+                    return NONE;
                 }
                 line++;
             }
@@ -699,7 +789,7 @@ int addressingMethod (char *line)
                 {
                     if (!isalnum(*line))
                     {
-                        return ERROR;
+                        return NONE;
                     }
                     line++;
                 }
@@ -731,7 +821,7 @@ int addressingMethod (char *line)
         {
             if (!isalnum(*line))
             {
-                return ERROR;
+                return NONE;
             }
             line++;
         }
@@ -743,11 +833,12 @@ int addressingMethod (char *line)
     }
     else if ((*line) == '\n' || (*line) == '\0')
     {
-        return NONE;
+        return EMPTY;
     }
-    return ERROR;
+    return NONE;
 }
 
+/* returns the length of the parameter in case of command from type "kind" */
 int param_length (char *param, int kind)
 {
     int count;
@@ -801,9 +892,10 @@ int param_length (char *param, int kind)
     return count;
 }
 
+/* returns 1 if the parameter param fit the command, and 0 if not. */
 int fit (int command, parameter *param, int position)
 {
-    if (param->kind == NONE)
+    if (param->kind == EMPTY)
     {
         if (sum(legal_adressing_methods[command][position],NUMBER_OF_ADDRESSING_METHODS) == 0)
             return 1;
@@ -816,6 +908,7 @@ int fit (int command, parameter *param, int position)
     }
 }
 
+/* returns the sum of the array arr */
 int sum (int arr[], int len)
 {
     int i,count;
@@ -825,6 +918,7 @@ int sum (int arr[], int len)
     return count;
 }
 
+/* frees the file "file" */
 void free_file(My_File *file)
 {
     if (file->firstLine)
@@ -843,15 +937,16 @@ void free_file(My_File *file)
     free(file);
 }
 
+/* frees the line "line" */
 void free_line(My_Line *line)
 {
     switch(line->kind)
     {
-        case Command:
+        case COMMAND:
             free_parameter(line->statement.command.p1);
             free_parameter(line->statement.command.p2);
             break;
-        case Request:
+        case REQUEST:
             switch(line->statement.request.kind)
         {
             case STRING:
@@ -864,13 +959,14 @@ void free_line(My_Line *line)
                 break;
         }
             break;
-        case Error:
+        case ERROR:
             free(line->statement.error);
             break;
     }
     free(line);
 }
 
+/* frees the parameter p */
 void free_parameter(parameter *p)
 {
     free(p->value);

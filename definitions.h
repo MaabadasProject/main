@@ -1,4 +1,6 @@
 
+/* this file contains definitions for all the other files */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,9 +29,10 @@
 #define NUMBER_OF_ADDRESSING_METHODS 4
 #define FIRST_LINE 100
 #define DELIMITERS " \t,:\n"
-enum {FIRST, SECOND, THIRD}; /* group number */
-enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER, NONE, ERROR}; /* Addressing methods */
-enum Build {MAKE,NOT}; /* make output file or not */
+enum {FIRST, SECOND}; /* parameter position */
+enum Addressing {IMMEDIATE, DIRECT, DISTANCE, REGISTER, EMPTY, NONE}; /* Addressing methods */
+enum Build {MAKE,DONT}; /* make output file or not */
+
 
 extern char *opcodes[];
 extern int legal_adressing_methods[NUMBER_OF_COMMANDS][2][NUMBER_OF_ADDRESSING_METHODS];
@@ -45,7 +48,7 @@ typedef struct
 typedef struct line
 {
     char label[MAX_SYMBOL_NAME];
-    enum {Command, Request, Error} kind; /* the kind of the assembly statement */
+    enum {COMMAND, REQUEST, ERROR} kind; /* the kind of the assembly statement */
     union /* the data of this assembly statement */
     {
         struct /* a request */
